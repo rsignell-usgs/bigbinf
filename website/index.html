@@ -1,42 +1,173 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
+<!DOCTYPE HTML>
+<!--
+	Prologue by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Prologue by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+	</head>
+	<body>
 
-	<link rel="stylesheet" href="site.css">
+		<!-- Header -->
+			<div id="header">
 
-	<title>BigBInf</title>
-<head/>
-    
-<body>
-	<div id="sidebar">
-		<h2>Downloads</h3>
-		<ul>
-			<li><a href="proposal.pdf">proposal.pdf</a></li>
-			<li><a href="presentation.pdf">presentation.pdf</a></li>
-		</ul>
-	</div>
-	<div id="main">
-		<h1>Access to Big Data in Bioinformatics</h1>
-		<h2>Project description</h2>
-		<p>
-		Collaboration between bioinformatics organizations involves shared access to large
-		datasets. This project investigates two avenues for tackling the collaborative analysis
-		of big data in bioinformatics: Efficient transport of large datasets across high speed
-		WAN networks and implementation of community clouds that host and securely execute
-		code close to the location where data is stored.<br>
-		Historically, data has been exchanged using tools and protocols like SSH and FTP,
-		but new protocols, such as GridFTP [Allcock et al. 2005] and HPN-SSH [Rapier and
-		Bennett 2008], offer more efficient use of high speed networks.<br>
-		Community clouds [Briscoe and Marinos 2009] are cloud computing services built on
-		micro clouds hosted by collaborating organisations, as opposed to conventional cloud
-		computing hosted by cloud vendors (such as Microsoft, Google and Amazon) [Jadeja
-		and Modi 2012]. Hosting micro clouds close to scientific data collections would facilitate
-		scientific collaboration through moving code closer to data, rather than vice versa.
-		</p>
-	</div>
+				<div class="top">
 
-	
-<body/>
+					<!-- Logo -->
+						<div id="logo">
+							<span class="image avatar48"><img src="images/avatar.jpg" alt="" /></span>
+							<h1 id="title">BigBInf</h1>
+							<p>Access to Big Data</br>in bioinformatics</p>
+						</div>
 
-<html/>
+					<!-- Nav -->
+						<nav id="nav">
+							<!--
+
+								Prologue's nav expects links in one of two formats:
+
+								1. Hash link (scrolls to a different section within the page)
+
+								   <li><a href="#foobar" id="foobar-link" class="icon fa-whatever-icon-you-want skel-layers-ignoreHref"><span class="label">Foobar</span></a></li>
+
+								2. Standard link (sends the user to another page/site)
+
+								   <li><a href="http://foobar.tld" id="foobar-link" class="icon fa-whatever-icon-you-want"><span class="label">Foobar</span></a></li>
+
+							-->
+							<ul>
+								<li><a href="#top" id="top-link" class="skel-layers-ignoreHref"><span class="icon fa-home">Intro</span></a></li>
+								<li><a href="#portfolio" id="portfolio-link" class="skel-layers-ignoreHref"><span class="icon fa-th">Approach</span></a></li>
+								<li><a href="#about" id="about-link" class="skel-layers-ignoreHref"><span class="icon fa-user">Team</span></a></li>
+								<li><a href="#contact" id="contact-link" class="skel-layers-ignoreHref"><span class="icon fa-envelope">More Info</span></a></li>
+							</ul>
+						</nav>
+
+				</div>
+
+				<div class="bottom">
+
+					<!-- Social Icons -->
+						<ul class="icons">
+							<!-- <li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li> -->
+							<!-- <li><a href="#" class="icon fa-facebook"><span class="label">Facebook</span></a></li> -->
+							<li><a href="https://github.com/wraithy/bigbinf" class="icon fa-github"><span class="label">Github</span></a></li>
+							<!-- <li><a href="#" class="icon fa-dribbble"><span class="label">Dribbble</span></a></li> -->
+							<!-- <li><a href="#" class="icon fa-envelope"><span class="label">Email</span></a></li> -->
+						</ul>
+
+				</div>
+
+			</div>
+
+		<!-- Main -->
+			<div id="main">
+
+				<!-- Intro -->
+					<section id="top" class="one dark cover">
+						<div class="container">
+
+							<header>
+								<h2 class="alt">Access to <strong>Big Data</strong> in bioinformatics</h2>
+								<p>A Computer Science Honours project aiming to solve data access</br> and distribution problems in the field of bioinformatics.</p>
+							</header>
+
+							<footer>
+								<a href="#portfolio" class="button scrolly">How?</a>
+							</footer>
+
+						</div>
+					</section>
+
+				<!-- Approach -->
+					<section id="portfolio" class="two">
+						<div class="container">
+
+							<header>
+								<h2>Approach</h2>
+							</header>
+
+							<p>
+							Currently, researchers in the field transfer raw data files from servers to their local machines,</br> and run their specialised code on it to generate information useful to them.</br>
+							The project focuses on two areas: Optimising the current methods, and testing a new paradigm.
+							</p>
+
+							<p>
+							<strong>Netowork protocol comparison</strong></br>
+							Popular protocols for data transfer like FTP and SSH were never built to work with networks boasting massive speeds.</br>
+							We are testing GridFTP and HPN-SSH as alternatives to get maximum throughput on a 10Gb/s connection.
+							</p>
+							<p>
+							<strong>New platform based on community Micro-Clouds</strong></br>
+							We are the challenging the current paradigm of moving remote data to a local machine, and then running code on it. Our project is testing the viability of a cloud based platform which will allow researchers to run their code remotely, at the location where the data is centrally stored. If done correctly, this will be much more convenient as the results are significantly easier to transfer. This involves setting up 'micro clouds' which can be set up by labs and universities. These will be connected to form a 'community cloud', where users can have their code executed if they are trusted.
+							</p>
+
+
+
+						</div>
+					</section>
+
+				<!-- Team -->
+					<section id="about" class="three">
+						<div class="container">
+
+							<header>
+								<h2>Team</h2>
+							</header>
+
+							<ul>
+								<li><a href="mailto:wraith.andrew@gmail.com">Andrew van Rooyen</a></li>
+								<li><a href="mailto:brendan.ball50.gmail.com">Brendan Ball</a></li>
+							</ul>
+
+						</div>
+					</section>
+
+				<!-- More Info -->
+					<section id="contact" class="four">
+						<div class="container">
+
+							<header>
+								<h2>More info</h2>
+							</header>
+
+							<p>Please see the following documents for more information on the project</p>
+							<ul>
+								<li><a href="downloads/proposal.pdf">Project proposal</a></li>
+								<li><a href="downloads/presentation.pdf">Project presentation</a></li>
+								<li><a href="images/gantt.png">Gantt chart</a></li>
+								<li><a href="images/work_split.png">Work distribution</a></li>
+							</ul>
+					</section>
+
+			</div>
+
+		<!-- Footer -->
+			<!-- <div id="footer"> -->
+
+				<!-- [> Copyright <] -->
+					<!-- <ul class="copyright"> -->
+						<!-- <li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li> -->
+					<!-- </ul> -->
+
+			<!-- </div> -->
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/jquery.scrollzer.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
