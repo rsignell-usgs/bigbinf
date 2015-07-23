@@ -30,17 +30,16 @@ ADD myproxy-server.config /etc/
 # Add the myproxy user to the simpleca group so that the myproxy server can create certificates
 RUN usermod -a -G simpleca myproxy
 
-# Add a user who can use the grid
-ADD setup_user.sh /tmp/
-RUN ./setup_user.sh
-
 # Set up env variables for myproxy
 RUN echo "/etc/grid-security/myproxy/hostcert.pem" > /etc/container_environment/X509_USER_CERT
 RUN echo "/etc/grid-security/myproxy/hostkey.pem" > /etc/container_environment/X509_USER_KEY
+RUN echo `grid-cert-info -subject -file /etc/grid-security/hostcert.pem` > /etc/container_environment/MYPROXY_SERVER_DN 
 
+# Set up the myproxy user
+ADD setup_user.sh /etc/my_init.d/01_setup_user.sh
 # Set up the runit daemon scripts
-ADD run_myproxy.sh /etc/my_init.d/
-ADD run_globus.sh /etc/my_init.d/
+ADD run_myproxy.sh /etc/my_init.d/02_run_myproxy.sh
+ADD run_globus.sh /etc/my_init.d/03_run_globus.sh
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

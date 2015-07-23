@@ -1,6 +1,8 @@
 #!/bin/bash
 USER="grid"
 
-useradd $USER
-OUTPUT=`sudo -u myproxy myproxy-admin-adduser -c $USER -l $USER -n | tail -n 1`
-grid-mapfile-add-entry -dn "$OUTPUT" -ln $USER
+useradd -d / $USER
+echo "Added $USER user. Setting up myproxy."
+sudo -u myproxy myproxy-admin-adduser -c $USER -l $USER
+grid-mapfile-add-entry -dn $MYPROXY_SERVER_DN -ln $USER
+
