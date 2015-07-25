@@ -1,0 +1,38 @@
+\documentclass[prodmode,acmtecs]{acmsmall}
+\usepackage[ruled]{algorithm2e}
+\usepackage{hyperref}
+\renewcommand{\algorithmcfname}{ALGORITHM}
+\SetAlFnt{\small}
+\SetAlCapFnt{\small}
+\SetAlCapNameFnt{\small}
+\SetAlCapHSkip{0pt}
+\IncMargin{-\parindent}
+
+
+
+\begin{document}
+\markboth{B D Ball}{Technologies for Real-Time Collaboration using Synchronized Web Browsers in BioInformatics}
+
+\title{BigBInf Micro Cloud Platform} % title
+\author{Brendan D Ball
+\affil{University of Cape Town}}
+\date{April 2015}
+\maketitle
+\section{Background}
+Cloud infrastructure would go a long way in simplifying the processing of big data. Collaboration between researchers can potentially improve if they are able to process the same raw data while being in different locations. This would be done by keeping the data in a cloud solution and allowing researchers access to execute code on the raw data. There has been an explorative push towards cloud solutions from Amazon, Google etc, but there are significant drawbacks. The raw data needs to be uploaded initially and researchers often resort to mailing hard drives \cite{baker2010next}. 
+\\
+\\
+An example of progress towards a cloud solution specifically for bioinformatics is Cloud BioLinux, which is a community driven project focussed on next generation sequencing. It is a toolkit which makes it easy to deploy virtual machines with bioinformatics infrastructure to a cloud platform. It bundles specific packages used in next generation sequence analysis, thereby decreasing configuration time and increasing maintainability. Instances of Cloud BioLinux have been tested on the Amazon EC2 cloud platform and on a private Eucalyptus cloud \cite{krampis2012cloud}.
+\\
+\\
+Micro clouds deployed on-site would overcome the challenge of uploading big data to a commercial cloud. However, since different research institutions would deploy their own micro clouds, a need for cloud interoperability arises to maintain the ability for researchers from different institutions to collaborate on the same data. The cloud interoperability will form a community cloud. A use case of a specific community cloud has some similar architectural properties to what we are looking for. These properties include autonomy (where each micro cloud will be managed independently), security, self management of nodes, and scalable \cite{jimenez2014deploying}.
+\\
+\\
+The traditional approach to creating a cloud platform which allows users to run their own instances of operating systems (such as Amazon EC2) is using virtualisation technology. This includes both hardware level emulation support and the software needed to manage the virtualisation. These virtualisation schemes use machine level virtualisation \cite{fink2014docker}. A new method, known as containerization provides much of the same functionality with added benefits of lower resource usage and better performance. Containers are able to run native machine instructions compared to virtualisation emulating every machine instruction \cite{dua2014virtualization}. Of course this means that containers are only useful when complete virtualisation is not needed, instead containers allow isolated application deployment and portability.
+
+\appendix
+\bibliographystyle{ACM-Reference-Format-Journals}
+\bibliography{ref}
+
+\end{document}
+
