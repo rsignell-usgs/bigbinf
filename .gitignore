@@ -6,3 +6,6 @@
 *.dvi
 *.bbl
 *.fdb_latexmk
+
+# Python bytecode
+*.pyc
