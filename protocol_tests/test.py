@@ -3,6 +3,7 @@ Gets information on packets transferred during a globus-url-copy
 """
 import argparse
 from datetime import datetime
+import os
 import socket
 import sys
 
@@ -39,6 +40,11 @@ def test(protocol_obj):
 
     datestring = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     protocol_name = protocol_obj.protocol
+
+    # Make sure the log directory exists
+    if not os.path.exists("packet_dumps"):
+        os.makedirs("packet_dumps")
+
     with open("packet_dumps/%s_%s.dump" % (protocol_name, datestring), "w") as f:
         f.writelines(line+"\n" for line in dump.output)
 

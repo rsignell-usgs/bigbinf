@@ -11,4 +11,4 @@
 *.pyc
 
 # Test logs
-protocol_tests/packet_dumps/*
+*.dump
