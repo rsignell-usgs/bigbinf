@@ -8,24 +8,22 @@ import socket
 import sys
 
 from tcpdump import TcpDump
-from protocols import Protocol, get_ip_address
+from protocols import PROC_ARGS, Protocol, get_ip_address
 
 def main():
     """
     Do a transfer and log the packet data
     """
-    gridftp = Protocol(args.host, args.remote_path, args.local_path, "gridftp")
-    scp = Protocol(args.host, args.remote_path, args.local_path, "scp")
-    test(gridftp)
-    test(scp)
+    for protocol in PROC_ARGS:
+        test(protocol)
 
-
-
-def test(protocol_obj):
+def test(protocol):
     """
     Takes a Protocol object and runs a test for it
     Outputs the dump to a file
     """
+    protocol_obj = Protocol(args.host, args.remote_path, args.local_path, protocol)
+
     remote_hostname = args.host
     if "@" in remote_hostname:
         remote_hostname = remote_hostname[remote_hostname.find("@")+1:]
@@ -47,7 +45,6 @@ def test(protocol_obj):
 
     with open("packet_dumps/%s_%s.dump" % (protocol_name, datestring), "w") as f:
         f.writelines(line+"\n" for line in dump.output)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

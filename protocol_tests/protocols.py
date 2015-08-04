@@ -7,7 +7,8 @@ import fcntl
 import struct
 
 PROC_ARGS = {"gridftp": "globus-url-copy -vb sshftp://%s%s %s",
-             "scp": "scp %s:%s %s"}
+             "scp": "scp %s:%s %s",
+             "ftp": "sftp %s:%s %s"}
 
 class Protocol(object):
     """
