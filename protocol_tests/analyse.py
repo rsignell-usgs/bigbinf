@@ -15,13 +15,20 @@ def main():
             if any(fname.startswith(x) for x in args.protocols):
                 with open("packet_dumps/%s" % fname) as f:
                     dump = json.load(f)
-                    print "%s transferred %s bytes" % (fname, sumbytes(dump))
+                    print "%s total transferred %s bytes" % (fname, sum_all(dump))
+                    print "%s outgoing transferred %s bytes" % (fname, sum_outgoing(dump))
 
-def sumbytes(dump):
+def sum_all(dump):
     """
     Returns the total bytes transferred between two hosts
     """
     return sum(int(l["length"]) for l in dump)
+
+def sum_outgoing(dump):
+    """
+    Returns the total outgoing bytes of the transfer
+    """
+    return sum(int(l["length"]) for l in dump if l["direction"] == "outgoing")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
