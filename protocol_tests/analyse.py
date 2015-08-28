@@ -2,39 +2,98 @@
 Reads in .dump files and interprets them
 """
 import argparse
+from datetime import datetime, timedelta
 import json
-import sys
 import os
+import sys
+
+from matplotlib import pyplot, dates
+
+from protocols import PROC_ARGS
+
+TIME_FORMAT = "%H:%M:%S.%f"
+PLOT_TIME_FORMAT = "%M:%S"
 
 def main():
     """
     Reads the dump files and runs the analysis
     """
-    if os.path.exists("packet_dumps"):
-        for fname in os.listdir("packet_dumps"):
-            if any(fname.startswith(x) for x in args.protocols):
-                with open("packet_dumps/%s" % fname) as f:
-                    dump = json.load(f)
-                    print "%s total transferred %s bytes" % (fname, sum_all(dump))
-                    print "%s outgoing transferred %s bytes" % (fname, sum_outgoing(dump))
+    fnames = get_dumps(protocols=args.protocols, n=args.number)
+    for fname in fnames:
+        with open("packet_dumps/%s" % fname) as f:
+            dump = json.load(f)
+        plot_length(dump, fname)
 
-def sum_all(dump):
+def plot_length(dump, fname):
     """
-    Returns the total bytes transferred between two hosts
+    Plots time on the x axis vs length on the y axis
     """
-    return sum(int(l["length"]) for l in dump)
+    # Convert all the times to an offset from 0
+    x = [datetime.strptime(l["time"], TIME_FORMAT) for l in dump]
+    t0 = min(x)
+    dt = timedelta(hours=t0.hour, minutes=t0.minute, seconds=t0.second, microseconds=t0.microsecond)
+    x = [t-dt for t in x]
 
-def sum_outgoing(dump):
+    y = [l["length"] for l in dump]
+
+    # Tidy up the filename to be used as a title
+    title = fname[:-5]
+    title = title.replace("_", " ").upper()
+
+    pyplot.figure()
+    pyplot.plot(x, y, "o")
+    pyplot.gca().xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
+    pyplot.title(title)
+    pyplot.xlabel("Time elapsed (min:second)")
+    pyplot.ylabel("Length of payload (bytes)")
+    pyplot.show()
+
+
+def get_dumps(protocols, n):
     """
-    Returns the total outgoing bytes of the transfer
+    Returns the first n dumps matching specifics protocols
     """
-    return sum(int(l["length"]) for l in dump if l["direction"] == "outgoing")
+    if not os.path.exists("packet_dumps"):
+        return None
+
+    matching_files = [f for f in os.listdir("packet_dumps") if f.startswith(tuple(protocols))]
+    files = sorted(matching_files)
+
+    if not n:
+        return files
+    else:
+        acc = []
+        for p in PROC_ARGS:
+            acc += [d for d in files if d.startswith(p)][:n]
+        return acc
+
+def sum_bytes(dump):
+    """
+    Returns the total, incoming and outgoing bytes of the transfer
+    """
+    outgoing = 0
+    incoming = 0
+    total = 0
+
+    for l in dump:
+        if l["direction"] == "outgoing":
+            outgoing += int(l["length"])
+        else:
+            incoming += int(l["length"])
+        total += int(l["length"])
+
+    return total, outgoing, incoming
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--protocols", metavar="PROTOCOL", nargs="+",
-                        default=["ftp", "scp", "gridftp"],
+                        default=PROC_ARGS.keys(),
                         help="Can be any combination of gridftp, scp, ftp")
+    parser.add_argument("-n", "--number", metavar="NUMBER", type=int,
+                        help="The number of dumps to evaluate, starting with the \
+                              most recent. Defaults to 'all'")
+    parser.add_argument("-s", "--test-filesize", metavar="SIZE", type=int,
+                        help="The size of the file used for testing, in bytes")
     args = parser.parse_args()
 
     sys.exit(main())
