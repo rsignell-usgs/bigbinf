@@ -47,6 +47,7 @@ def get_packet_transfer_dict(line, host_1):
     """
     elements = line.split(" ")
 
+    # TODO: fix incoming
     direction = "incoming" if elements[2] == host_1 else "outgoing"
     return {"direction": direction,
             "time": elements[0],

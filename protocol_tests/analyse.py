@@ -18,13 +18,25 @@ def main():
     """
     Reads the dump files and runs the analysis
     """
-    fnames = get_dumps(protocols=args.protocols, n=args.number)
+    fnames = get_dump_fnames(protocols=args.protocols, n=args.number)
     for fname in fnames:
         with open("packet_dumps/%s" % fname) as f:
             dump = json.load(f)
-        plot_length(dump, fname)
+        print "%s: %s" % (fname, calc_speed(dump))
 
-def plot_length(dump, fname):
+def calc_speed(dump):
+    """
+    Calculates the average speed of a transfer
+    """
+    length = sum_bytes(dump)[0]
+    t_min = datetime.strptime(min(l["time"] for l in dump), TIME_FORMAT)
+    t_max = datetime.strptime(max(l["time"] for l in dump), TIME_FORMAT)
+    t_delta = (t_max - t_min).total_seconds()
+
+    return length/t_delta
+
+
+def plot_length_time(dump, fname):
     """
     Plots time on the x axis vs length on the y axis
     """
@@ -48,25 +60,6 @@ def plot_length(dump, fname):
     pyplot.ylabel("Length of payload (bytes)")
     pyplot.show()
 
-
-def get_dumps(protocols, n):
-    """
-    Returns the first n dumps matching specifics protocols
-    """
-    if not os.path.exists("packet_dumps"):
-        return None
-
-    matching_files = [f for f in os.listdir("packet_dumps") if f.startswith(tuple(protocols))]
-    files = sorted(matching_files)
-
-    if not n:
-        return files
-    else:
-        acc = []
-        for p in PROC_ARGS:
-            acc += [d for d in files if d.startswith(p)][:n]
-        return acc
-
 def sum_bytes(dump):
     """
     Returns the total, incoming and outgoing bytes of the transfer
@@ -83,6 +76,26 @@ def sum_bytes(dump):
         total += int(l["length"])
 
     return total, outgoing, incoming
+
+def get_dump_fnames(protocols, n):
+    """
+    Returns the first n dumps matching specifics protocols
+    """
+    if not os.path.exists("packet_dumps"):
+        return None
+
+    # Filter on protocols
+    matching_files = [f for f in os.listdir("packet_dumps") if f.startswith(tuple(protocols))]
+    files = sorted(matching_files)
+
+    # Filter on number
+    if not n:
+        return files
+    else:
+        acc = []
+        for p in PROC_ARGS:
+            acc += [d for d in files if d.startswith(p)][:n]
+        return acc
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
