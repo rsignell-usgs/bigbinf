@@ -36,4 +36,22 @@ class TcpDump(object):
         Stops the subprocess
         """
         self.handle.terminate()
-        self.output = self.handle.stdout.read().split("\n")
+        stdout = self.handle.stdout.read().split("\n")
+        # get rid of blank lines
+        stdout = [line for line in stdout if line]
+        self.output = [get_packet_transfer_dict(line, self.host_1) for line in stdout]
+
+def get_packet_transfer_dict(line, host_1):
+    """
+    Represents a single line of tcpdump output
+    """
+    elements = line.split(" ")
+
+    # TODO: fix incoming
+    direction = "incoming" if elements[2] == host_1 else "outgoing"
+    return {"direction": direction,
+            "time": elements[0],
+            "from_ip": elements[2],
+            "to_ip": elements[5],
+            "length": elements[-1]}
+

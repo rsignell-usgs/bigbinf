@@ -1,0 +1,138 @@
+% v2-acmsmall-sample.tex, dated March 6 2012
+% This is a sample file for ACM small trim journals
+%
+% Compilation using 'acmsmall.cls' - version 1.3 (March 2012), Aptara Inc.
+% (c) 2010 Association for Computing Machinery (ACM)
+%
+% Questions/Suggestions/Feedback should be addressed to => "acmtexsupport@aptaracorp.com".
+% Users can also go through the FAQs available on the journal's submission webpage.
+%
+% Steps to compile: latex, bibtex, latex latex
+%
+% For tracking purposes => this is v1.3 - March 2012
+
+\documentclass[prodmode,acmtecs]{acmsmall} % Aptara syntax
+\usepackage{caption}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage{rotating}
+\usepackage{hyperref}
+\renewcommand{\arraystretch}{1.5}
+
+% Document starts
+\begin{document}
+
+% Title portion
+\title{Design Chapter}
+\author{Andrew van Rooyen}
+
+\acmformat{van Rooyen. Andrew, 2015. Design chapter}
+% At a minimum you need to supply the author names, year and a title.
+% IMPORTANT:
+% Full first names whenever they are known, surname last, followed by a period.
+% In the case of two authors, 'and' is placed between them.
+% In the case of three or more authors, the serial comma is used, that is, all author names
+% except the last one but including the penultimate author's name are followed by a comma,
+% and then 'and' is placed before the final author's name.
+% If only first and middle initials are known, then each initial
+% is followed by a period and they are separated by a space.
+% The remaining information (journal title, volume, article number, date, etc.) is 'auto-generated'.
+
+\maketitle
+
+\section{Design Aims} % (of the software)
+The system will provide mechanisms to compare how the following protocols handle file transfers. This information will be used to determine which one is best to use when dealing with bioinformatics data on an educational network.
+\begin{itemize}
+	\item GridFTP
+	\item FTP
+	\item HPN-SSH
+	\item SCP
+\end{itemize}
+The protocols to test were specified by the proposer of the project. They are also the most popular protocols in the field, perhaps with the exception of \textit{fasp} by AsperaSoft~\cite{beloslyudtsev2014aspera}, which is non-free. Because of the popularity of these protocols over all others, it is assumed that one of them will be the ideal protocol.\\
+
+\section{Approach}
+%SE strategy
+%Justify if picking 1 out of something
+%VCS?
+%Tests?
+Transfers using each of the 4 protocols above will be run while the network traffic is logged. This information will then be analysed.\\\\
+A simple python script will be sufficient to run the transfers, as most of the work will be done by calling a subprocess for each specific protocol. The analysis will also be done using python as there are a vast number of analytical and visualisation tools available.\\\\
+The testing environment will be kept as stable as possible during tests, and multiple tests will be run at different times of the day.\\\\
+First, the scripts which run the transfers will be written so that tests can be run and results saved. The analysis suite will be written later, and will accept the previously-saved results as input.\\\\
+The testbed will be constructed using git for version control. The repository is available at \url{https://github.com/wraithy/bigbinf}.\\\\
+With regards to GridFTP, the `lite' version will be used. This means that authentication is done over ssh as opposed a previously-configured certificate authority. This does not make any difference to the file transfer itself, but it does prevent unnecessary configuration of the testbed which can be quite complex in the case of `full' GridFTP.\\\\
+Once the ideal protocol has been decided on, it will be made available as an endpoint to the microcloud system, so that users can retrieve their results in an optimal way.
+
+\section{Evaluation}
+%What is being measured/tested
+The system will log packets on the network interface used for the transfer. This allows for analysis which goes deeper then simply logging the transfer speed and file size reported by the program.\\
+Metrics that will be investigated include
+\begin{itemize}
+		\item Average speed, max speed
+		\item Consistency
+		\item Total transferred bytes and overhead
+\end{itemize}
+
+\section{Implementation}
+All testing will be done on an Ubuntu 14.04 system, with the following packages installed
+\begin{itemize}
+	\item python 2.7
+	\item globus-gass-copy-progs 8.6
+	\item globus-gridftp-server-progs 6.38
+	\item tcpdump
+	\item openssh-client
+	\item openssh-server
+\end{itemize}
+However, the testbed should work on any Unix system as long as python, tcpdump and the correct programs for each protocol are installed.
+
+\subsection{File transfer}
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{img/basic_transfer_example.png}
+\end{center}
+\\\\
+A copy is initiated from Host 1. A file from Host 2 is transferred to Host 1.\\\\
+\begin{center}
+	\includegraphics[width=0.75\textwidth]{img/if_example.png}
+\end{center}
+\\\\
+The `tcpdump' program (\url{www.tcpdump.org}) comes with most Unix systems. It watches a network interface (e.g eth0) and logs information about packets which pass through. The program is run while the copy is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2.
+
+Note that despite the name, tcpdump can also capture UDP packets, which is relevant for some of the protocols.
+
+\subsection{Transfer logging}
+The python script for running the file transfers has been written to accept
+\begin{itemize}
+	\item the name of the network interface
+	\item the remote hostname (Host 2)
+	\item the path of the file on Host 2
+	\item a local path to copy the file to
+\end{itemize}
+
+It then resolves the IPs of each host, and for each protocol, runs a copy in isolation. It spawns a tcpdump subprocess, and let’s it run for precisely as long as the copy runs. It then saves the output in a file.\\\\
+\begin{center}
+	\includegraphics[height=0.5\textheight]{img/seq_example}
+\end{center}
+\\\\
+Doing it this way allows for a much more controlled environment. Because the tcpdump is only capturing while the copy is running, no other packets will be included in the logs. Also, the copies are run programmatically and consecutively. Following copies are not started until both the tcpdump and protocol processes have been closed, and the log file has been written. This means that they are all run in an identical (within reason) environment, but at the same time do not interfere with each other.\\\\
+
+This test process is run multiple times for statistical reasons, generating multiple log files.
+
+\subsection{Analysis of dumps}
+A separate python file reads in the log files and parses them. Operations can then be run by looking at the time of each packet, and the size of its payload. This allows analysis of
+\begin{itemize}
+	\item overhead, because *all* transferred is logged, rather than just the file size
+	\item speed (data/time)
+	\item consistency
+	\item total time
+	\item total size
+\end{itemize}
+
+This data can then be aggregated over multiple log files, and graphed using the matplotlib python library.\\\\
+More info is needed here, and will be filled in once I have completed the analysis scripts.
+
+% Bibliography
+\bibliographystyle{ACM-Reference-Format-Journals}
+\bibliography{ref}
+\end{document}
+% End of v2-acmsmall-sample.tex (March 2012) - Gerry Murray, ACM
+

@@ -7,7 +7,10 @@ background:
 	latexmk -pdf background_microcloud.tex
 cloudpaper:
 	latexmk -pdf paper_microcloud.tex
+design:
+	latexmk -pdf design_protocol.tex
+	# latexmk -pdf design_microcloud.tex
 clean:
 	@rm -f *.aux *.fls *.log *.blg *.dvi *.bbl *.fdb_latexmk *.out
 watch:
-	latexmk -pdf -pvc -silent proposal.tex
+	latexmk -pdf -pvc -silent design_protocol.tex
