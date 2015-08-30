@@ -5,6 +5,8 @@ proposal:
 background:
 	latexmk -pdf background_protocol.tex
 	latexmk -pdf background_microcloud.tex
+cloudpaper:
+	latexmk -pdf paper_microcloud.tex
 clean:
 	@rm -f *.aux *.fls *.log *.blg *.dvi *.bbl *.fdb_latexmk *.out
 watch:
