@@ -44,6 +44,36 @@ Micro clouds deployed on-site would overcome the challenge of uploading big data
 \\
 The traditional approach to creating a cloud platform which allows users to run their own instances of operating systems (such as Amazon EC2) is using virtualisation technology. This includes both hardware level emulation support and the software needed to manage the virtualisation. These virtualisation schemes use machine level virtualisation \cite{fink2014docker}. A new method, known as containerization provides much of the same functionality with added benefits of lower resource usage and better performance. Containers are able to run native machine instructions compared to virtualisation emulating every machine instruction \cite{dua2014virtualization}. Of course this means that containers are only useful when complete virtualisation is not needed, instead containers allow isolated application deployment and portability.
 
+\section{Design}
+\subsection{Design Aims}
+Develop a micro cloud platform which allows code upload and execution
+FIFO Scheduler for scheduling jobs
+Web frontend user interface
+Form a community cloud
+\subsection{Constraints}
+Jobs can only be run via docker containers. To create a job you have to create a Dockerfile.
+\subsection{Approach}
+Use Git for VCS
+Unit testing for ensuring code correctness
+Use of Kubernetes
+Specifically designed for running docker containers in a cluster
+Recently released version 1 (out of beta ready for production)
+Easy to use and not cluttered like OpenStack
+OpenStack solves a broader problem and wasn’t specifically designed for docker containers
+Other container managers exist, but have to choose 1, Kubernetes looks most promising
+\subsection{Evaluation}
+Evaluate functionality by uploading and executing example code on given data
+Evaluate user interface effectiveness based on feedback from a limited number of expert users
+Possibly Michelle, Peter, Bagula
+
+\subsection{Implementation}
+Dockerfiles used for uploading code
+Use Kubernetes as a docker manager
+Storage support
+Support OpenStack Swift storage API
+Support S3 storage API
+Web interface
+backend implemented using python flask web framework
 
 \bibliographystyle{ACM-Reference-Format-Journals}
 \bibliography{ref} 
