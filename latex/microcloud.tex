@@ -12,7 +12,6 @@
 \isbn{insert isbn here}
 
 \title{BigBInf Micro Cloud Platform}
-\subtitle{[Extended Abstract]}
 
 \numberofauthors{1}
 \author{
@@ -46,10 +45,12 @@ The traditional approach to creating a cloud platform which allows users to run 
 
 \section{Design}
 \subsection{Design Aims}
-Develop a micro cloud platform which allows code upload and execution
-FIFO Scheduler for scheduling jobs
-Web frontend user interface
-Form a community cloud
+The main aim of the micro cloud platform is to allow code to be uploaded by a user and execute it on local data. Users will make use of the micro cloud by interacting with a front end web interface. The web interface should be easy to use and provide useful feedback on a job that a user has submitted. 
+\\\\
+Given that multiple jobs can be submitted by multiple people, these jobs have to be scheduled properly to allow successful completion of each job. The default scheduler will rely on a first-in-first-out (FIFO) queue to schedule jobs. The whole platform should be fairly modular to allow pluggable components. This will allow possibilities such as adding a more advanced scheduler or completely replacing the backend while keeping the front end web interface.
+\\\\
+The final aim is to form a community cloud using a centralised discovery service. This will improve scalability compared to a full mesh network between micro clouds. The community cloud will allow sharing of data and collaboration of users between multiple micro clouds.
+
 \subsection{Constraints}
 Jobs can only be run via docker containers. To create a job you have to create a Dockerfile.
 \subsection{Approach}
