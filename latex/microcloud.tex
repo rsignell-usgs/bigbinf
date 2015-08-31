@@ -1,4 +1,5 @@
 \documentclass{sig-alternate-05-2015}
+\usepackage{hyperref}
 
 
 \begin{document}
@@ -52,29 +53,48 @@ Given that multiple jobs can be submitted by multiple people, these jobs have to
 The final aim is to form a community cloud using a centralised discovery service. This will improve scalability compared to a full mesh network between micro clouds. The community cloud will allow sharing of data and collaboration of users between multiple micro clouds.
 
 \subsection{Constraints}
+\subsubsection{Jobs}
 Jobs can only be run via docker containers. To create a job you have to create a Dockerfile.
+
+\subsubsection{Micro Cloud Deployment}
+Micro cloud deployments for evaluation are limited to UWC and UCT E-Research. This means that the community cloud that will be evaluated will only consist of two micro clouds.
+
 \subsection{Approach}
-Use Git for VCS
-Unit testing for ensuring code correctness
-Use of Kubernetes
-Specifically designed for running docker containers in a cluster
-Recently released version 1 (out of beta ready for production)
-Easy to use and not cluttered like OpenStack
-OpenStack solves a broader problem and wasn’t specifically designed for docker containers
-Other container managers exist, but have to choose 1, Kubernetes looks most promising
+Every software project needs a version control system (VCS) to store source code. Git will be used as the VCS for this micro cloud platform. Software also needs to be verified for correctness to decrease the chance of bugs occurring. This will be done by writing unit tests to allow continuous testing at all stages of the project.
+
+\subsubsection{Collaboration}
+This project is a collaboration between UCT and UWC. We met with the supervisors at UWC and continued communication with feedback was ongoing throughout the project lifetime. UCT E-Research was subsequently also brought onboard the project. Both UWC and UCT E-Research provided valuable hardware resources enabling thorough evaluation in a real world setting.
+
+\subsubsection{Kubernetes}
+Kubernetes has been chosen as the primary backend framework for managing the micro cloud. Kubernetes is specifically designed to run docker containers in a cluster. It is still a new system and Kubernetes version 1 has just recently been released which means it's ready for production use. Using containers instead of virtual machines has only recently become popular. The growth in popularity has resulted in a number of systems being developed which provide some overlapping functionality to Kubernetes. Kubernetes looks most promising as it is easy to use. Given that it is relatively new it is not cluttered and aims to solve a single problem of being a container manager. 
+
+\subsubsection{OpenStack}
+OpenStack was the first system looked at as a base for a container manager. After much trouble trying to get it set up properly in a development environment it was decided that there are more suitable systems to solve the problem. OpenStack is very cluttered with many inter dependent components. The OpenStack Swift API will however be supported for storage as it is very likely that the micro cloud platform could be deployed on top of OpenStack.
+
 \subsection{Evaluation}
-Evaluate functionality by uploading and executing example code on given data
-Evaluate user interface effectiveness based on feedback from a limited number of expert users
-Possibly Michelle, Peter, Bagula
+\subsubsection{Functionality}
+The functionality of the micro cloud will be evaluated by submitting sample analysis code as a job. The analysis code will be searching against a genome database from NCBI's NR database which is publicly available. The analysis code will make use of the BLAST+ search tool. The code itself will be custom queries. Different sized jobs can be tested by increasing or decreasing the size of the query which makes it easily scalable to have different sized test cases.
+
+\subsubsection{User Interface}
+The evaluation of the user interface will be qualitative in nature. It will be based on user feedback from the project supervisors, both from UWC and UCT. The main aim of the project is not to test user experience design, although it is acknowledged to be very important, which is why a few expert users will be testing the user interface.  
 
 \subsection{Implementation}
-Dockerfiles used for uploading code
-Use Kubernetes as a docker manager
-Storage support
-Support OpenStack Swift storage API
-Support S3 storage API
-Web interface
-backend implemented using python flask web framework
+
+\begin{figure}
+\centering
+\includegraphics{img/microcloud_architecture}
+\caption{Micro Cloud Architecture}
+\end{figure}
+
+The micro cloud platform will make use of containers, more specifically Docker containers to execute code. Docker images are created using Dockerfiles which specify the execution environment and what files to execute. This means that submitting a job will require creating a Dockerfile and uploading this along with source code which will be executed. 
+Docker containers will be managed using Kubernetes as specified above in the approach section.   
+
+\subsubsection{Storage}
+The main problem that this project is trying to solve is processing Big Data. This means that we have to be able to access the data that sits on the micro cloud. The two most popular storage APIs are OpenStack Swift API and S3 API. By supporting both of these storage APIs it should be relatively easy to deploy the micro cloud on a large range of different clusters.
+
+\subsubsection{Web Interface}
+The backend web interface will be implemented using the python flask web framework. It is a minimalist framework which allows for rapid development of web interfaces. 
+The front end web interface will be implemented using Angularjs to create a single page application. 
 
 \bibliographystyle{ACM-Reference-Format-Journals}
 \bibliography{ref} 
