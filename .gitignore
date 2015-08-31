@@ -1,5 +1,6 @@
 # Latex build files
 *.aux
+*.out
 *.fls
 *.log
 *.blg

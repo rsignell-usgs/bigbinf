@@ -1,16 +1,12 @@
 default:
-	latexmk -pdf proposal.tex
-proposal:
-	latexmk -pdf proposal.tex
-background:
-	latexmk -pdf background_protocol.tex
-	latexmk -pdf background_microcloud.tex
-cloudpaper:
-	latexmk -pdf paper_microcloud.tex
-design:
-	latexmk -pdf design_protocol.tex
-	# latexmk -pdf design_microcloud.tex
+	make protocols
+	make cloud
+protocols:
+	latexmk -pdf protocols.tex
+cloud:
+	latexmk -pdf microcloud.tex
 clean:
 	@rm -f *.aux *.fls *.log *.blg *.dvi *.bbl *.fdb_latexmk *.out
 watch:
-	latexmk -pdf -pvc -silent design_protocol.tex
+	latexmk -pdf -pvc -silent paper_protocols.tex
+	# latexmk -pdf -pvc -silent paper_microcloud.tex
