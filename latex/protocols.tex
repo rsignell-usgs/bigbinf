@@ -64,10 +64,7 @@ The system will provide mechanisms to compare how the following protocols handle
 The protocols to test were specified by the proposer of the project. They are also the most popular protocols in the field, perhaps with the exception of \textit{fasp} by AsperaSoft~\cite{beloslyudtsev2014aspera}, which is non-free. Because of the popularity of these protocols over all others, it is assumed that one of them will be the ideal protocol.\\
 
 \subsection{Approach}
-%SE strategy
-%Justify if picking 1 out of something
-%VCS?
-%Tests?
+% TODO: This is all over the place. Needs some structure.
 Transfers using each of the 4 protocols above will be run while the network traffic is logged. This information will then be analysed.\\\\
 A simple python script will be sufficient to run the transfers, as most of the work will be done by calling a subprocess for each specific protocol. The analysis will also be done using python as there are a vast number of analytical and visualisation tools available.\\\\
 The testing environment will be kept as stable as possible during tests, and multiple tests will be run at different times of the day.\\\\
@@ -97,8 +94,10 @@ All testing will be done on an Ubuntu 14.04 system, with the following packages 
 	\item openssh-server
 \end{itemize}
 However, the testbed should work on any Unix system as long as python, tcpdump and the correct programs for each protocol are installed.
+\\\\
+In order to test the protocols in a relevant environment, the tests will be run between hosts at the University of Cape Town (UCT) and the University of the Western Cape (UWC). Both universities are connected to the South African National Research Network \cite{sanren} network which runs at 10Gbps. The hosts will be virtual machines running at the South African National Bioinformatics Institute (UWC) and the Science DMZ (UCT). These locations were chosen because in both cases they are close to the SANReN link, and are on the outside of institutional firewalls. This means that throttling is avoided, and ensures a minimum speed of 1Gbps.
 
-\subsubsection{File transfer}
+\subsubsection{File transfer and logging}
 \begin{figure}[H]
 	\label{fig:copy_example}
 	\centering
@@ -106,17 +105,19 @@ However, the testbed should work on any Unix system as long as python, tcpdump a
 	\caption{Host 1 copying a file.}
 \end{figure}
 A copy is initiated from Host 1. A file from Host 2 is then transferred to Host 1 using the particular protocol.
+\\\\
+The tests will be run with 2 files: A 6 byte file containing the word `hello', and a 350MB video file. The smaller file will be used during development, and the larger file will be used in the final tests. The formats of these files were not tailored to the specific domain of bioinformatics because all 4 protocols are agnostic of format, and treat everything as binary. 350MB was chosen as the size for the larger file because it is large enough to generate sufficient data, but not so large that transfers would take more than a few minutes each. This makes it easier to maintain a stable testing environment during the transfer.
 \begin{figure}[H]
 	\label{fig:interface_example}
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/if_example.png}
 	\caption{The network interface capturing traffic.}
 \end{figure}
-The `tcpdump' program (\url{www.tcpdump.org}) comes with most Unix systems. It watches a network interface (e.g eth0) and logs information about packets which pass through. The program is run while the copy is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2.
+The `tcpdump' program (\url{www.tcpdump.org}) comes with most Unix systems. It watches a network interface (e.g.\ eth0) and logs information about packets which pass through. The program is run while the copy is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2.
 
 Note that despite the name, tcpdump can also capture UDP packets, which is relevant for some of the protocols.
 
-\subsubsection{Transfer logging}
+\subsubsection{Testbed}
 The python script for running the file transfers has been written to accept
 \begin{itemize}
 	\item the name of the network interface
@@ -126,9 +127,12 @@ The python script for running the file transfers has been written to accept
 \end{itemize}
 
 It then resolves the IPs of each host, and for each protocol, runs a copy in isolation. It spawns a tcpdump subprocess, and lets it run for precisely as long as the copy runs. The tcpdump program is started with filters, so that only traffic between the two hosts is captured. It then saves the output in a file.\\\\
-\begin{center}
+\begin{figure}[H]
+	\label{fig:testbed_sequence}
+	\centering
 	\includegraphics[height=0.5\textheight]{img/seq_example}
-\end{center}
+	\caption{The sequence of subprocesses called by the testbed.}
+\end{figure}
 Doing it this way allows for a much more controlled environment. Because the tcpdump is only capturing while the copy is running, no other packets will be included in the logs. Also, the copies are run programmatically and consecutively. Following copies are not started until both the tcpdump and protocol processes have been closed, and the log file has been written. This means that they are all run in an identical (within reason) environment, but at the same time do not interfere with each other.\\\\
 
 This test process is run multiple times for statistical reasons, generating multiple log files.

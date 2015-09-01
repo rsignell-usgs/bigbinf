@@ -8,5 +8,4 @@ cloud:
 clean:
 	@rm -f *.aux *.fls *.log *.blg *.dvi *.bbl *.fdb_latexmk *.out
 watch:
-	latexmk -pdf -pvc -silent paper_protocols.tex
-	# latexmk -pdf -pvc -silent paper_microcloud.tex
+	latexmk -pdf -pvc -silent protocols.tex
