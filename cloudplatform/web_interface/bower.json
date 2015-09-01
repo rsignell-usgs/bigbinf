@@ -1,0 +1,24 @@
+{
+  "name": "bigbinf_web",
+  "version": "0.0.0",
+  "homepage": "https://github.com/wraithy/bigbinf",
+  "authors": [
+    "Brendan Ball <ball.brendan50@gmail.com>"
+  ],
+  "main": "runserver.py",
+  "keywords": [
+    "flask"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "bigbinf_web/static/components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.4"
+  }
+}
