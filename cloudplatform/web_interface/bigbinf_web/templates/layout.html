@@ -7,17 +7,19 @@
 	<meta http-equiv='Content-Type' content='text/html' charset='UTF-8'/>
 	<link rel='stylesheet' type='text/css' href='/static/css/site.css'>
 	<script src='/static/components/angular/angular.js'></script>
+	<script src='/static/js/site.js'></script>
 	<title>BigBInf</title>
 </head>
 
 <body ng-app='bigbinf_web'>
-<div ng-controller='SubmitJobController as submitJob'> 
-	<form action='#' method=post enctype=multipart/form-data ng-submit='submitJobForm()'>
-		<input type=file name=file ng-model='job.file'>
+<div ng-controller='CsubmitJob'> 
+	<form ng-submit='submitJobForm()'>
+		<input type=file file-model='jobfile'
+		onchange='angular.element(this).scope().fileChanged(this)'
+		/>
 		<input type=submit value=Upload>
 	</form>
 </div>	
-
 
 </body>
 
