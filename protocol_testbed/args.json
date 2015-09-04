@@ -1,0 +1,6 @@
+{
+	"ftp": "sftp %s:%s %s",
+	"gridftp": "globus-url-copy -vb sshftp://%s%s %s",
+	"scp": "scp %s:%s %s",
+	"hpn-scp": "/opt/openssh-portable/bin/scp %s:%s %s"
+}

@@ -1,14 +1,14 @@
 """
 Wrapper classes for transfer protocols
 """
-import subprocess
-import socket
 import fcntl
+import json
+import socket
 import struct
+import subprocess
 
-PROC_ARGS = {"gridftp": "globus-url-copy -vb sshftp://%s%s %s",
-             "scp": "scp %s:%s %s",
-             "ftp": "sftp %s:%s %s"}
+with open("args.json") as f:
+    PROC_ARGS = json.load(f)
 
 class Protocol(object):
     """

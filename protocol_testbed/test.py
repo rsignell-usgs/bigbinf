@@ -15,10 +15,12 @@ def main():
     """
     Do a transfer and log the packet data
     """
-    for protocol in PROC_ARGS:
-        test(protocol)
+    datestring = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
 
-def test(protocol):
+    for protocol in PROC_ARGS:
+        test(protocol, datestring)
+
+def test(protocol, datestring):
     """
     Takes a Protocol object and runs a test for it
     Outputs the dump to a file
@@ -37,7 +39,6 @@ def test(protocol):
     protocol_obj.run()
     dump.stop()
 
-    datestring = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     protocol_name = protocol_obj.protocol
 
     # Make sure the log directory exists

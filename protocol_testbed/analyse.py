@@ -19,21 +19,23 @@ def main():
     Reads the dump files and runs the analysis
     """
     fnames = get_dump_fnames(protocols=args.protocols, n=args.number)
+
+    print
+    print "{0:<10}{1}".format("Protocol", "Speed (bytes/s)")
+    print "="*25
     for fname in fnames:
+        pname = fname[:fname.find("_")]
         with open("packet_dumps/%s" % fname) as f:
             dump = json.load(f)
-        print "%s: %s" % (fname, calc_speed(dump))
+        print "{0:<10}{1:.2f}".format(pname+":", calc_speed(dump))
 
 def calc_speed(dump):
     """
     Calculates the average speed of a transfer
     """
     length = sum_bytes(dump)[0]
-    t_min = datetime.strptime(min(l["time"] for l in dump), TIME_FORMAT)
-    t_max = datetime.strptime(max(l["time"] for l in dump), TIME_FORMAT)
-    t_delta = (t_max - t_min).total_seconds()
-
-    return length/t_delta
+    time = get_time_elapsed(dump)
+    return length/time
 
 
 def plot_length_time(dump, fname):
@@ -77,6 +79,14 @@ def sum_bytes(dump):
 
     return total, outgoing, incoming
 
+def get_time_elapsed(dump):
+    """
+    Returns the total time elapsed, in seconds
+    """
+    t_min = datetime.strptime(min(l["time"] for l in dump), TIME_FORMAT)
+    t_max = datetime.strptime(max(l["time"] for l in dump), TIME_FORMAT)
+    return (t_max - t_min).total_seconds()
+
 def get_dump_fnames(protocols, n):
     """
     Returns the first n dumps matching specifics protocols
@@ -101,7 +111,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--protocols", metavar="PROTOCOL", nargs="+",
                         default=PROC_ARGS.keys(),
-                        help="Can be any combination of gridftp, scp, ftp")
+                        help="Can be any combination of %s" % ", ".join(PROC_ARGS.keys()))
     parser.add_argument("-n", "--number", metavar="NUMBER", type=int,
                         help="The number of dumps to evaluate, starting with the \
                               most recent. Defaults to 'all'")
