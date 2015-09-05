@@ -33,7 +33,7 @@ def test(protocol, datestring):
 
     remote_ip = socket.gethostbyname(remote_hostname)
     local_ip = get_ip_address(args.interface)
-    dump = TcpDump(args.interface, remote_ip, local_ip)
+    dump = TcpDump(protocol, args.interface, remote_ip, local_ip)
 
     dump.start()
     protocol_obj.run()
