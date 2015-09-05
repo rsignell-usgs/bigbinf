@@ -53,11 +53,11 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--interface", metavar="INTERFACE", required=True,
                         help="The interface to capture packets on")
     parser.add_argument("-H", "--host", metavar="HOST", required=True,
-                        help="The host which has the file to be copied")
+                        help="The host which has the file to be copied. Include usernames if necessary (e.g. 'user@host').")
     parser.add_argument("-r", "--remote-path", metavar="PATH", required=True,
                         help="The path of the file to be copied")
     parser.add_argument("-l", "--local-path", metavar="PATH", required=True,
-                        help="The path where the file shold be copied to")
+                        help="The path where the file shold be copied to. Please use full paths with a trailing slash.")
     args = parser.parse_args()
 
     sys.exit(main())
