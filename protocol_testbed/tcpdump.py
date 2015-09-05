@@ -2,6 +2,7 @@
 tcpdump interface to be used for analysis
 """
 from datetime import datetime
+import os
 import subprocess
 
 class TcpDump(object):
@@ -9,11 +10,12 @@ class TcpDump(object):
     Captures tcpdump output for traffic between two hosts
     """
 
-    def __init__(self, protocol, if_name, host_1=None, host_2=None):
+    def __init__(self, protocol, filename, if_name, host_1=None, host_2=None):
         """
         Takes either 0 or 2 hosts
         """
         self.protocol = protocol
+        self.filename = filename
         self.if_name = if_name
         self.host_1 = host_1
         self.host_2 = host_2
@@ -43,6 +45,7 @@ class TcpDump(object):
         # get rid of blank lines
         stdout = [line for line in stdout if line]
         self.output = {"protocol": self.protocol,
+                       "file_size": os.path.getsize(self.filename),
                        "uct_start_time": self.utc_start_time,
                        "packets": [get_packet_transfer_dict(line, self.host_1)
                                    for line in stdout]}
@@ -53,7 +56,6 @@ def get_packet_transfer_dict(line, host_1):
     """
     elements = line.split(" ")
 
-    # TODO: fix incoming
     direction = "incoming" if elements[2].startswith(host_1) else "outgoing"
 
     return {"direction": direction,

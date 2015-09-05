@@ -70,7 +70,7 @@ def sum_bytes(dump):
     incoming = 0
     total = 0
 
-    for l in dump:
+    for l in dump["packets"]:
         if l["direction"] == "outgoing":
             outgoing += int(l["length"])
         else:
@@ -83,8 +83,8 @@ def get_time_elapsed(dump):
     """
     Returns the total time elapsed, in seconds
     """
-    t_min = datetime.strptime(min(l["time"] for l in dump), TIME_FORMAT)
-    t_max = datetime.strptime(max(l["time"] for l in dump), TIME_FORMAT)
+    t_min = datetime.strptime(min(l["time"] for l in dump["packets"]), TIME_FORMAT)
+    t_max = datetime.strptime(max(l["time"] for l in dump["packets"]), TIME_FORMAT)
     return (t_max - t_min).total_seconds()
 
 def get_dump_fnames(protocols, n):
