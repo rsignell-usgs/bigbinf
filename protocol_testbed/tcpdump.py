@@ -44,11 +44,11 @@ class TcpDump(object):
         stdout = self.handle.stdout.read().split("\n")
         # get rid of blank lines
         stdout = [line for line in stdout if line]
+        packets = [get_packet_transfer_dict(line, self.host_1) for line in stdout]
         self.output = {"protocol": self.protocol,
                        "file_size": os.path.getsize(self.filename),
                        "uct_start_time": self.utc_start_time,
-                       "packets": [get_packet_transfer_dict(line, self.host_1)
-                                   for line in stdout]}
+                       "packets": [p for p in packets if p]}
 
 def get_packet_transfer_dict(line, host_1):
     """
@@ -56,11 +56,16 @@ def get_packet_transfer_dict(line, host_1):
     """
     elements = line.split(" ")
 
-    direction = "incoming" if elements[2].startswith(host_1) else "outgoing"
-
-    return {"direction": direction,
-            "time": elements[0],
-            "from_ip": elements[2],
-            "to_ip": elements[5],
-            "length": elements[-1]}
+    # Sometimes tcpdump spits out lines like
+    # 19:10:04.114431 IP 128.199.53.7], length 0
+    # According to the man page, this shouldn't happen, but it does.
+    if len(elements) > 5:
+        direction = "incoming" if elements[2].startswith(host_1) else "outgoing"
+        return {"direction": direction,
+                "time": elements[0],
+                "from_ip": elements[2],
+                "to_ip": elements[5],
+                "length": elements[-1]}
+    else:
+        return None
 
