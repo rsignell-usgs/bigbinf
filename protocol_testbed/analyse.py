@@ -19,48 +19,78 @@ def main():
     Reads the dump files and runs the analysis
     """
     fnames = get_dump_fnames(protocols=args.protocols, n=args.number)
+    dumps = []
 
-    print
-    print "{0:<10}{1}".format("Protocol", "Speed (bytes/s)")
-    print "="*25
     for fname in fnames:
-        pname = fname[:fname.find("_")]
         with open("packet_dumps/%s" % fname) as f:
-            dump = json.load(f)
-        print "{0:<10}{1:.2f}".format(pname+":", calc_speed(dump))
+            dumps.append(json.load(f))
 
-def calc_speed(dump):
-    """
-    Calculates the average speed of a transfer
-    """
-    length = sum_bytes(dump)[0]
-    time = get_time_elapsed(dump)
-    return length/time
+    print_len_time(dumps)
+    print_speed(dumps)
+    # plot_length_time(dumps[0])
 
-
-def plot_length_time(dump, fname):
+def plot_length_time(dump):
     """
     Plots time on the x axis vs length on the y axis
     """
     # Convert all the times to an offset from 0
-    x = [datetime.strptime(l["time"], TIME_FORMAT) for l in dump]
+    x = [datetime.strptime(l["time"], TIME_FORMAT) for l in dump["packets"]]
     t0 = min(x)
     dt = timedelta(hours=t0.hour, minutes=t0.minute, seconds=t0.second, microseconds=t0.microsecond)
     x = [t-dt for t in x]
 
-    y = [l["length"] for l in dump]
-
-    # Tidy up the filename to be used as a title
-    title = fname[:-5]
-    title = title.replace("_", " ").upper()
+    y = [l["length"] for l in dump["packets"]]
 
     pyplot.figure()
     pyplot.plot(x, y, "o")
     pyplot.gca().xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
-    pyplot.title(title)
+    pyplot.title(dump["protocol"])
     pyplot.xlabel("Time elapsed (min:second)")
     pyplot.ylabel("Length of payload (bytes)")
     pyplot.show()
+
+def print_speed(dumps):
+    """
+    Prints the up/down speed, in bytes/s, for each dump
+    """
+    print "\n{:^61}".format("Speed (bytes/s)")
+    print "="*61
+    print "{0:<15}{1:<15}{2:<15}{3:<15}".format("Protocol", "Down", "Up", "Total")
+    print "="*61
+
+    for dump in dumps:
+        print "{protocol:<15}{up:<15.2f}{down:<15.2f}{total:<15.2f}"\
+              .format(protocol=dump["protocol"],
+                      **calc_speed(dump))
+    print
+
+def print_len_time(dumps):
+    """
+    Prints the total bytes transferred for each dump, as well as total time elapsed
+    """
+    print "\n{:^90}".format("Bytes transferred")
+    print "="*90
+    print "{0:<15}{1:<15}{2:<15}{3:<15}{4:<15}{5:<15}".format("Protocol", "Down", "Up",
+                                                              "Total", "Filesize", "Time (s)")
+    print "="*90
+
+    for dump in dumps:
+        print "{protocol:<15}{up:<15}{down:<15}{total:<15}{filesize:<15}{time:<15}"\
+              .format(protocol=dump["protocol"],
+                      filesize=dump["file_size"],
+                      time=get_time_elapsed(dump),
+                      **sum_bytes(dump))
+    print
+
+def calc_speed(dump):
+    """
+    Calculates the average (down, up, total) speed of a transfer
+    """
+    length = sum_bytes(dump)
+    time = get_time_elapsed(dump)
+    return {"up": length["up"]/time,
+            "down": length["down"]/time,
+            "total": length["total"]/time}
 
 def sum_bytes(dump):
     """
@@ -77,7 +107,9 @@ def sum_bytes(dump):
             incoming += int(l["length"])
         total += int(l["length"])
 
-    return total, outgoing, incoming
+    return {"down": incoming,
+            "up": outgoing,
+            "total": total}
 
 def get_time_elapsed(dump):
     """
