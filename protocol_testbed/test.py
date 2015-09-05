@@ -25,8 +25,12 @@ def test(protocol, datestring):
     Takes a Protocol object and runs a test for it
     Outputs the dump to a file
     """
+    if not args.local_path.endswith("/"):
+        args.local_path += "/"
+
     protocol_obj = Protocol(args.host, args.remote_path, args.local_path, protocol)
-    filename = args.remote_path[args.remote_path.find("/")+1:]
+    filename = args.remote_path[args.remote_path.rfind("/")+1:]
+    filepath = args.local_path+filename
 
     remote_hostname = args.host
     if "@" in remote_hostname:
@@ -34,7 +38,7 @@ def test(protocol, datestring):
 
     remote_ip = socket.gethostbyname(remote_hostname)
     local_ip = get_ip_address(args.interface)
-    dump = TcpDump(protocol, filename, args.interface, remote_ip, local_ip)
+    dump = TcpDump(protocol, filepath, args.interface, remote_ip, local_ip)
 
     dump.start()
     protocol_obj.run()
