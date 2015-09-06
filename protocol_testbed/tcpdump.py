@@ -5,6 +5,8 @@ from datetime import datetime
 import os
 import subprocess
 
+BUFFER_FILE = "buffer"
+
 class TcpDump(object):
     """
     Captures tcpdump output for traffic between two hosts
@@ -22,6 +24,7 @@ class TcpDump(object):
         self.handle = None
         self.output = ""
         self.utc_start_time = str(datetime.utcnow())
+        self.buff = open(BUFFER_FILE, "w+")
 
     def start(self):
         """
@@ -29,19 +32,25 @@ class TcpDump(object):
         """
         packet_filter = ""
         if self.host_1 and self.host_2:
-            packet_filter = "(host %s and host %s)" % (self.host_1, self.host_2)
+            packet_filter = "host %s and host %s" % (self.host_1, self.host_2)
 
         self.handle = subprocess.Popen(["tcpdump", "-i", self.if_name, packet_filter],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE,
-                                       stdin=subprocess.PIPE)
+                                       stdout=self.buff,
+                                       stderr=None)
 
     def stop(self):
         """
         Stops the subprocess
         """
+        # self.buff.flush()
+        # self.handle.stdout.flush()
         self.handle.terminate()
-        stdout = self.handle.stdout.read().split("\n")
+        self.buff.close()
+        with open(BUFFER_FILE) as f:
+            stdout = f.read().split("\n")
+        print "captured packets: %s" % len(stdout)
+        os.remove("buffer")
+
         # get rid of blank lines
         stdout = [line for line in stdout if line]
         packets = [get_packet_transfer_dict(line, self.host_1) for line in stdout]
