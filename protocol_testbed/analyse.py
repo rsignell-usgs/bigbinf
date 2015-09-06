@@ -27,7 +27,7 @@ def main():
 
     print_len_time(dumps)
     print_speed(dumps)
-    # plot_length_time(dumps[0])
+    plot_length_time(dumps[0])
 
 def plot_length_time(dump):
     """
@@ -42,10 +42,10 @@ def plot_length_time(dump):
     y = [l["length"] for l in dump["packets"]]
 
     pyplot.figure()
-    pyplot.plot(x, y, "o")
+    pyplot.plot(x, y, ".")
     pyplot.gca().xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
     pyplot.title(dump["protocol"])
-    pyplot.xlabel("Time elapsed (min:second)")
+    pyplot.xlabel("Time elapsed")
     pyplot.ylabel("Length of payload (bytes)")
     pyplot.show()
 
@@ -96,19 +96,19 @@ def sum_bytes(dump):
     """
     Returns the total, incoming and outgoing bytes of the transfer
     """
-    outgoing = 0
-    incoming = 0
+    down = 0
+    up = 0
     total = 0
 
     for l in dump["packets"]:
-        if l["direction"] == "outgoing":
-            outgoing += int(l["length"])
+        if l["direction"] == "up":
+            up += int(l["length"])
         else:
-            incoming += int(l["length"])
+            down += int(l["length"])
         total += int(l["length"])
 
-    return {"down": incoming,
-            "up": outgoing,
+    return {"down": down,
+            "up": up,
             "total": total}
 
 def get_time_elapsed(dump):
