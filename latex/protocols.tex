@@ -24,6 +24,8 @@ Andrew van Rooyen\\
 
 \date{30 August 2015}
 
+\toappear{This paper and associated code is available at \url{https://github.com/wraithy/bigbinf}}
+
 \maketitle
 \begin{abstract}
 \end{abstract}
@@ -54,36 +56,43 @@ There are also security, privacy and ethical concerns with outsourcing this proc
 
 \section{Design and Implementation}
 \subsection{Design Aims} % (of the software)
-The system will provide mechanisms to compare how the following protocols handle file transfers. This information will be used to determine which one is best to use when dealing with bioinformatics data on an educational network.
-\begin{itemize}
-	\item GridFTP
-	\item FTP
-	\item HPN-SSH
-	\item SCP
-\end{itemize}
-The protocols to test were specified by the proposer of the project. They are also the most popular protocols in the field, perhaps with the exception of \textit{fasp} by AsperaSoft~\cite{beloslyudtsev2014aspera}, which is non-free. Because of the popularity of these protocols over all others, it is assumed that one of them will be the ideal protocol.\\
+The system will compare the following file transfer protocols to determine which is best for transferring bioinformatics data on an educational network: GridFTP, FTP, HPN-SSH and SCP.
+These are the most popular protocols for file transfer in the field, perhaps with the exception of \textit{fasp} by AsperaSoft~\cite{beloslyudtsev2014aspera}, which is non-free. 
+
+\subsection{Constraints}
+In order to test the protocols in a relevant environment, the tests will be run between the University of Cape Town (UCT) and the University of the Western Cape (UWC). Both universities are connected to the South African National Research Network \cite{sanren} which runs at 10Gbps.\\\\
+The `lite' version of GridFTP will be used. This means that authentication is done over ssh as opposed a previously-configured certificate authority. This makes no difference to the file transfer itself, but it prevents unnecessary configuration of the testbed which can be quite complex in the case of `full' GridFTP~\cite{gridftplite}.\\\\
 
 \subsection{Approach}
 % TODO: This is all over the place. Needs some structure.
-Transfers using each of the 4 protocols above will be run while the network traffic is logged. This information will then be analysed.\\\\
-A simple python script will be sufficient to run the transfers, as most of the work will be done by calling a subprocess for each specific protocol. The analysis will also be done using python as there are a vast number of analytical and visualisation tools available.\\\\
-The testing environment will be kept as stable as possible during tests, and multiple tests will be run at different times of the day.\\\\
-First, the scripts which run the transfers will be written so that tests can be run and results saved. The analysis suite will be written later, and will accept the previously-saved results as input.\\\\
-The testbed will be constructed using git for version control. The repository is available at \url{https://github.com/wraithy/bigbinf}.\\\\
-With regards to GridFTP, the `lite' version will be used. This means that authentication is done over ssh as opposed a previously-configured certificate authority. This does not make any difference to the file transfer itself, but it does prevent unnecessary configuration of the testbed which can be quite complex in the case of `full' GridFTP.\\\\
+Transfers using each of the 4 protocols will be run while the network traffic is logged.
+
+The hosts will be virtual machines running at the South African National Bioinformatics Institute (UWC) and the Science DMZ (UCT). These locations were chosen because in both cases they are close to the SANReN link, and are on the outside of institutional firewalls. This means that throttling is avoided, and ensures a minimum speed of 1Gbps.
+\begin{figure}[H]
+	\label{fig:route}
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/route.png}
+	\caption{The hosts in their environment.}
+\end{figure}
+
+The testing environment will be kept as stable as possible during tests, and multiple tests will be run at different times of the day.
+
+A copy will be initiated from Host 1. A file from Host 2 will then be transferred to Host 1 using the particular protocol.
+\begin{figure}[H]
+	\label{fig:copy_example}
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/basic_transfer_example.png}
+	\caption{Host 1 copying a file.}
+\end{figure}
 Once the ideal protocol has been decided on, it will be made available as an endpoint to the microcloud system, so that users can retrieve their results in an optimal way.
 
 \subsection{Evaluation}
 %What is being measured/tested
-The system will log packets on the network interface used for the transfer. This allows for analysis which goes deeper then simply logging the transfer speed and file size reported by the program.\\
-Metrics that will be investigated include
-\begin{itemize}
-		\item Average speed, max speed
-		\item Consistency
-		\item Total transferred bytes and overhead
-\end{itemize}
+The system will log packets on the network interface used for the transfer. This information can then be parsed by a suite of python tools to calculate metrics and display graphs.
+This approach allows analysis of overhead (because \textit{all} transferred data is logged, rather than just the file size), speed (data/time), consistency, total time, and total size.
 
 \subsection{Implementation}
+A simple python script will be sufficient to run the transfers, as most of the work will be done by a subprocess for each specific protocol. The analysis will also be done using python as there are a vast number of analytical and visualisation tools available.\\\\
 All testing will be done on an Ubuntu 14.04 system, with the following packages installed
 \begin{itemize}
 	\item python 2.7
@@ -92,28 +101,21 @@ All testing will be done on an Ubuntu 14.04 system, with the following packages 
 	\item tcpdump
 	\item openssh-client
 	\item openssh-server
+	\item openssh-portable with the HPN patches, compiled from \url{https://github.com/rapier1/openssh-portable}
 \end{itemize}
-However, the testbed should work on any Unix system as long as python, tcpdump and the correct programs for each protocol are installed.
+The testbed should work on any Unix system as long as python, tcpdump and the binaries for each protocol are installed correctly.
 \\\\
-In order to test the protocols in a relevant environment, the tests will be run between hosts at the University of Cape Town (UCT) and the University of the Western Cape (UWC). Both universities are connected to the South African National Research Network \cite{sanren} network which runs at 10Gbps. The hosts will be virtual machines running at the South African National Bioinformatics Institute (UWC) and the Science DMZ (UCT). These locations were chosen because in both cases they are close to the SANReN link, and are on the outside of institutional firewalls. This means that throttling is avoided, and ensures a minimum speed of 1Gbps.
 
 \subsubsection{File transfer and logging}
-\begin{figure}[H]
-	\label{fig:copy_example}
-	\centering
-	\includegraphics[width=0.4\textwidth]{img/basic_transfer_example.png}
-	\caption{Host 1 copying a file.}
-\end{figure}
-A copy is initiated from Host 1. A file from Host 2 is then transferred to Host 1 using the particular protocol.
-\\\\
-The tests will be run with 2 files: A 6 byte file containing the word `hello', and a 350MB video file. The smaller file will be used during development, and the larger file will be used in the final tests. The formats of these files were not tailored to the specific domain of bioinformatics because all 4 protocols are agnostic of format, and treat everything as binary. 350MB was chosen as the size for the larger file because it is large enough to generate sufficient data, but not so large that transfers would take more than a few minutes each. This makes it easier to maintain a stable testing environment during the transfer.
+The tests will be run with 3 files: A 6 byte file containing the word `hello', a 350MB video file and a 1GB video file. The formats of these files were not tailored to the specific domain of bioinformatics because all 4 protocols are agnostic of format, and treat everything as binary.
+
+The `tcpdump' program (\url{www.tcpdump.org}) comes with most Unix systems. It watches a network interface (e.g.\ eth0) and logs information about packets which pass through. The program is run while the copy is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2.
 \begin{figure}[H]
 	\label{fig:interface_example}
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/if_example.png}
 	\caption{The network interface capturing traffic.}
 \end{figure}
-The `tcpdump' program (\url{www.tcpdump.org}) comes with most Unix systems. It watches a network interface (e.g.\ eth0) and logs information about packets which pass through. The program is run while the copy is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2.
 
 Note that despite the name, tcpdump can also capture UDP packets, which is relevant for some of the protocols.
 
@@ -133,19 +135,12 @@ It then resolves the IPs of each host, and for each protocol, runs a copy in iso
 	\includegraphics[height=0.5\textheight]{img/seq_example}
 	\caption{The sequence of subprocesses called by the testbed.}
 \end{figure}
-Doing it this way allows for a much more controlled environment. Because the tcpdump is only capturing while the copy is running, no other packets will be included in the logs. Also, the copies are run programmatically and consecutively. Following copies are not started until both the tcpdump and protocol processes have been closed, and the log file has been written. This means that they are all run in an identical (within reason) environment, but at the same time do not interfere with each other.\\\\
+Doing it this way allows for a much more controlled environment. Because the tcpdump is only capturing while the copy is running, no other packets will be included in the logs. Also, the copies are run programmatically and consecutively. Following copies are not started until both the tcpdump and protocol processes have been closed, and the log file has been written. This means that they are all run in an identical (within reason) environment, but at the same time do not interfere with each other.
 
 This test process is run multiple times for statistical reasons, generating multiple log files.
 
 \subsubsection{Analysis of dumps}
-A separate python file reads in the log files and parses them. Operations can then be run by looking at the time of each packet, and the size of its payload. This allows analysis of
-\begin{itemize}
-	\item overhead, because *all* transferred is logged, rather than just the file size
-	\item speed (data/time)
-	\item consistency
-	\item total time
-	\item total size
-\end{itemize}
+A separate python file reads in the log files and parses them. Operations can then be run by looking at the time of each packet, and the size of its payload. 
 
 This data can then be aggregated over multiple log files, and graphed using the matplotlib python library.\\\\
 More info is needed here, and will be filled in once I have completed the analysis scripts.
