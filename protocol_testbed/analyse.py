@@ -27,7 +27,7 @@ def main():
 
     print_len_time(dumps)
     print_speed(dumps)
-    plot_length_time(dumps[0])
+    # plot_length_time(dumps[0])
 
 def plot_length_time(dump):
     """
@@ -66,20 +66,25 @@ def print_speed(dumps):
 
 def print_len_time(dumps):
     """
-    Prints the total bytes transferred for each dump, as well as total time elapsed
+    Prints the total bytes transferred for each dump, overhead, and total time elapsed
     """
-    print "\n{:^90}".format("Bytes transferred")
-    print "="*90
-    print "{0:<15}{1:<15}{2:<15}{3:<15}{4:<15}{5:<15}".format("Protocol", "Down", "Up",
-                                                              "Total", "Filesize", "Time (s)")
-    print "="*90
+    print "\n{:^105}".format("Bytes transferred")
+    print "="*105
+    print "{0:<15}{1:<15}{2:<15}{3:<15}{4:<15}{5:<15}{6:<15}".format("Protocol", "Down", "Up",
+                                                                     "Total", "Filesize",
+                                                                     "Overhead (%)", "Time (s)")
+    print "="*105
+
 
     for dump in dumps:
-        print "{protocol:<15}{up:<15}{down:<15}{total:<15}{filesize:<15}{time:<15}"\
-              .format(protocol=dump["protocol"],
-                      filesize=dump["file_size"],
-                      time=get_time_elapsed(dump),
-                      **sum_bytes(dump))
+        num_bytes = sum_bytes(dump)
+        filesize = dump["file_size"]
+        print "{0:<15}{up:<15}{down:<15}{total:<15}{1:<15}{2:<15.4f}{3:<15}"\
+              .format(dump["protocol"],
+                      filesize,
+                      (1-float(num_bytes["total"])/float(filesize))*100,
+                      get_time_elapsed(dump),
+                      **num_bytes)
     print
 
 def calc_speed(dump):
