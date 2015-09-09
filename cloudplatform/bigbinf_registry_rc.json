@@ -27,11 +27,11 @@
             "env":[
             	{
             		"name": "REGISTRY_HTTP_TLS_CERTIFICATE",
-            		"value": "/certs/domain.crt"
+            		"value": "/certs/registry.crt"
             	},
             	{
             		"name": "REGISTRY_HTTP_TLS_KEY",
-            		"value": "/certs/domain.key"
+            		"value": "/certs/registry.key"
             	}
             ],
             
