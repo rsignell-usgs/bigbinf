@@ -27,7 +27,7 @@ def main():
 
     print_len_time(dumps)
     print_speed(dumps)
-    # plot_length_time(dumps[0])
+    plot_length_time(dumps[0])
 
 def plot_length_time(dump):
     """
@@ -49,6 +49,13 @@ def plot_length_time(dump):
     pyplot.ylabel("Length of payload (bytes)")
     pyplot.show()
 
+def aggregate(l):
+    """
+    Aggregates lists of tuples
+    e.g. [(1,1,1), (3,3,3)] returns (2,2,2)
+    """
+    return tuple(sum(x)/len(x) for x in zip(*l))
+
 def print_speed(dumps):
     """
     Prints the up/down speed, in bytes/s, for each dump
@@ -58,10 +65,15 @@ def print_speed(dumps):
     print "{0:<15}{1:<15}{2:<15}{3:<15}".format("Protocol", "Down", "Up", "Total")
     print "="*61
 
-    for dump in dumps:
-        print "{protocol:<15}{up:<15.2f}{down:<15.2f}{total:<15.2f}"\
-              .format(protocol=dump["protocol"],
-                      **calc_speed(dump))
+    if args.aggregate:
+        for p in args.protocols:
+            agg = aggregate([calc_speed(d) for d in dumps if d["protocol"] == p])
+            print "{0:<15}{1:<15.2f}{2:<15.2f}{3:<15.2f}".format(p, *agg)
+
+    else:
+        for dump in dumps:
+            print "{0:<15}{1:<15.2f}{2:<15.2f}{3:<15.2f}"\
+                   .format(dump["protocol"], *calc_speed(dump))
     print
 
 def print_len_time(dumps):
@@ -75,16 +87,23 @@ def print_len_time(dumps):
                                                                      "Overhead (%)", "Time (s)")
     print "="*105
 
+    if args.aggregate:
+        for p in args.protocols:
+            agg_len = aggregate([sum_bytes(d) for d in dumps if d["protocol"] == p])
+            agg_time = sum(get_time_elapsed(d) for d in dumps)/len(dumps)
+            agg_filesize = sum(int(d["file_size"]) for d in dumps)/len(dumps)
+            print "{0:<15}{4:<15}{5:<15}{6:<15}{1:<15}{2:<15.4f}{3:<15}"\
+                  .format(p, agg_filesize, (1-float(agg_len[2])/float(agg_filesize))*100,
+                          agg_time, *agg_len)
 
-    for dump in dumps:
-        num_bytes = sum_bytes(dump)
-        filesize = dump["file_size"]
-        print "{0:<15}{up:<15}{down:<15}{total:<15}{1:<15}{2:<15.4f}{3:<15}"\
-              .format(dump["protocol"],
-                      filesize,
-                      (1-float(num_bytes["total"])/float(filesize))*100,
-                      get_time_elapsed(dump),
-                      **num_bytes)
+    else:
+        for dump in dumps:
+            num_bytes = sum_bytes(dump)
+            filesize = dump["file_size"]
+            print "{0:<15}{4:<15}{5:<15}{6:<15}{1:<15}{2:<15.4f}{3:<15}"\
+                  .format(dump["protocol"], filesize,
+                          (1-float(num_bytes[2])/float(filesize))*100,
+                          get_time_elapsed(dump), *num_bytes)
     print
 
 def calc_speed(dump):
@@ -93,13 +112,13 @@ def calc_speed(dump):
     """
     length = sum_bytes(dump)
     time = get_time_elapsed(dump)
-    return {"up": length["up"]/time,
-            "down": length["down"]/time,
-            "total": length["total"]/time}
+    return (length[0]/time,
+            length[1]/time,
+            length[2]/time)
 
 def sum_bytes(dump):
     """
-    Returns the total, incoming and outgoing bytes of the transfer
+    Returns the (down, up, total) bytes of the transfer
     """
     down = 0
     up = 0
@@ -112,9 +131,7 @@ def sum_bytes(dump):
             down += int(l["length"])
         total += int(l["length"])
 
-    return {"down": down,
-            "up": up,
-            "total": total}
+    return (down, up, total)
 
 def get_time_elapsed(dump):
     """
@@ -136,7 +153,7 @@ def get_dump_fnames(protocols, n):
     files = sorted(matching_files)
 
     # Filter on number
-    if not n:
+    if n is None:
         return files
     else:
         acc = []
@@ -154,6 +171,8 @@ if __name__ == "__main__":
                               most recent. Defaults to 'all'")
     parser.add_argument("-s", "--test-filesize", metavar="SIZE", type=int,
                         help="The size of the file used for testing, in bytes")
+    parser.add_argument("-a", "--aggregate", action="store_true",
+                        help="Aggregate dumps of the same type")
     args = parser.parse_args()
 
     sys.exit(main())
