@@ -2,17 +2,13 @@
 Reads in .dump files and interprets them
 """
 import argparse
-from datetime import datetime, timedelta
 import json
-import os
 import sys
 
-from matplotlib import pyplot, dates
+from datetime import datetime
 
 from protocols import PROC_ARGS
-
-TIME_FORMAT = "%H:%M:%S.%f"
-PLOT_TIME_FORMAT = "%M:%S"
+from helpers import get_dump_fnames, TIME_FORMAT, PLOT_TIME_FORMAT
 
 def main():
     """
@@ -27,27 +23,6 @@ def main():
 
     print_len_time(dumps)
     print_speed(dumps)
-    plot_length_time(dumps[0])
-
-def plot_length_time(dump):
-    """
-    Plots time on the x axis vs length on the y axis
-    """
-    # Convert all the times to an offset from 0
-    x = [datetime.strptime(l["time"], TIME_FORMAT) for l in dump["packets"]]
-    t0 = min(x)
-    dt = timedelta(hours=t0.hour, minutes=t0.minute, seconds=t0.second, microseconds=t0.microsecond)
-    x = [t-dt for t in x]
-
-    y = [l["length"] for l in dump["packets"]]
-
-    pyplot.figure()
-    pyplot.plot(x, y, ".")
-    pyplot.gca().xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
-    pyplot.title(dump["protocol"])
-    pyplot.xlabel("Time elapsed")
-    pyplot.ylabel("Length of payload (bytes)")
-    pyplot.show()
 
 def aggregate(l):
     """
@@ -140,26 +115,6 @@ def get_time_elapsed(dump):
     t_min = datetime.strptime(min(l["time"] for l in dump["packets"]), TIME_FORMAT)
     t_max = datetime.strptime(max(l["time"] for l in dump["packets"]), TIME_FORMAT)
     return (t_max - t_min).total_seconds()
-
-def get_dump_fnames(protocols, n):
-    """
-    Returns the first n dumps matching specifics protocols
-    """
-    if not os.path.exists("packet_dumps"):
-        return None
-
-    # Filter on protocols
-    matching_files = [f for f in os.listdir("packet_dumps") if f.startswith(tuple(protocols))]
-    files = sorted(matching_files)
-
-    # Filter on number
-    if n is None:
-        return files
-    else:
-        acc = []
-        for p in PROC_ARGS:
-            acc += [d for d in files if d.startswith(p)][:n]
-        return acc
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
