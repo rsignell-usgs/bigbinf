@@ -1,4 +1,15 @@
-var app = angular.module('bigbinf_web', []);
+var app = angular.module('bigbinf_webApp', ['ngRoute']);
+
+app.config(function($routeProvider) {
+	$routeProvider
+	.when('/', {
+		templateUrl: 'static/html/submitjob.html',
+		controller: 'CsubmitJob'
+	})
+	.when('/about',{
+		templateUrl: 'static/html/about.html',
+	})
+}); 
 
 app.directive('fileModel', ['$parse', function ($parse) {
 	return {

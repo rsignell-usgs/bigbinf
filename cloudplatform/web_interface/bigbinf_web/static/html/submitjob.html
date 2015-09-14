@@ -1,0 +1,8 @@
+<div ng-controller='CsubmitJob'> 
+	<form ng-submit='submitJobForm()'>
+		<input type=file file-model='jobfile'
+		onchange='angular.element(this).scope().fileChanged(this)'
+		/>
+		<input type=submit value=Upload>
+	</form>
+</div>	
