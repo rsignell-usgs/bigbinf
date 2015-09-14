@@ -1,4 +1,3 @@
-From ubuntu:trusty
-
-
-CMD ["echo", "hello"]
+FROM scratch
+COPY hello /
+CMD ["/hello"]

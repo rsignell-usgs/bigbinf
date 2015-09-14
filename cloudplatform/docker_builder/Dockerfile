@@ -15,7 +15,7 @@ RUN curl -sSL https://get.docker.com/ubuntu/ | sh
 ADD ./wrapdocker /usr/local/bin/wrapdocker
 RUN chmod +x /usr/local/bin/wrapdocker
 
-ADD ./registry.crt /etc/docker/certs.d/10.0.0.47:5000/ca.crt
+#ADD ./registry.crt /etc/docker/certs.d/10.0.0.47:5000/ca.crt
 
 # Define additional metadata for our image.
 VOLUME /var/lib/docker
