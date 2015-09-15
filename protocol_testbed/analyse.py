@@ -10,7 +10,7 @@ from helpers import aggregate,\
                     calc_speed,\
                     get_dump_fnames,\
                     sum_bytes
-from plot import plot_packets
+from plot import plot_packets, plot_aggregate
 
 def main():
     """
@@ -27,9 +27,9 @@ def main():
         print_stats(dumps)
     else:
         if "packets" in args.graph:
-            plot_packets(dumps, splots=4)
+            plot_packets(dumps)
         if "aggregate" in args.graph:
-            pass
+            plot_aggregate(dumps)
 
 def print_stats(dumps):
     """
@@ -87,5 +87,8 @@ if __name__ == "__main__":
                         help="Which graphs to plot. Can be 'packets', \
                              'aggregate' or both.")
     args = parser.parse_args()
+
+    if args.graph:
+        args.n = 1
 
     sys.exit(main())
