@@ -27,6 +27,7 @@ def submitJob():
 			response = remote_build(file, builder_url, registry_url, imagename)
 			for line in response:
 				build_status = line
+				print line
 				yield build_status
 
 			build_success_str = 'Successfully built'
@@ -35,6 +36,8 @@ def submitJob():
 
 			response = remote_push_registry(builder_url, registry_url, imagename)
 			response = list(response)
+			for line in response:
+				print line
 			push_success_str = 'Image successfully pushed'
 			if not push_success_str in response[-2]:
 				abort(400)
