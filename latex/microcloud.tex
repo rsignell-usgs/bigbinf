@@ -32,27 +32,45 @@ Brendan D. Ball\\
 \keywords{Big Data; BioInformatics; Clouds}
 
 
+\section{Introduction}
+Cloud infrastructure has the potential to simplify the processing of big data sets, as well as collaboration between remote researchers. Data could be kept in a cloud solution and researchers would execute code on the raw data.
+\\
+\\
+Cloud BioLinux is a cloud solution specifically focussed on next generation sequencing. This toolkit makes it easy to deploy virtual machines with bioinformatics infrastructure to a cloud platform. It bundles specific packages used in next generation sequence analysis, thereby decreasing configuration time and increasing maintainability. Instances of Cloud BioLinux have been tested on the Amazon EC2 cloud platform and on a private Eucalyptus cloud \cite{krampis2012cloud}.
+\\
+\\
+Micro clouds deployed on-site would overcome the challenge of uploading big data to a commercial cloud. However, since different research institutions would deploy their own micro clouds, cloud interoperability is required to allow researchers from different institutions to collaborate on the same data. The cloud interoperability will form a community cloud. A use case of a specific community cloud  by \cite{jimenez2014deploying} has similar architectural properties to what we are looking for. These properties include autonomy (where each micro cloud will be managed independently), security, self management of nodes, and scalability.
+\\
+\\
+The traditional approach to creating a cloud platform which allows users to run their own instances of operating systems (such as Amazon EC2) uses virtualisation technology. This includes both hardware level emulation support and the software needed to manage the virtualisation. These virtualisation schemes use machine level virtualisation \cite{fink2014docker}. A new method, known as containerization, provides much of the same functionality, with added benefits of lower resource usage and better performance. Containers are able to run native machine instructions compared to virtualisation emulating every machine instruction \cite{dua2014virtualization}. Of course this means that containers are only useful when complete virtualisation is not needed, instead containers allow isolated application deployment and portability.
+\\\\
+In this work, we aim to enable efficient processing of Big Data through the use of micro clouds. We also aim to increase collaboration by connecting the micro clouds to form a community cloud.
+\\\\
+This project is a collaboration between UCT and UWC. UCT E-Research was subsequently also brought onboard the project. Both UWC and UCT E-Research provided valuable hardware resources enabling thorough evaluation in a real world setting.
+
+
 \section{Background}
-Cloud infrastructure would go a long way in simplifying the processing of big data. Collaboration between researchers can potentially improve if they are able to process the same raw data while being in different locations. This would be done by keeping the data in a cloud solution and allowing researchers access to execute code on the raw data. There has been an explorative push towards cloud solutions from Amazon, Google etc, but there are significant drawbacks. The raw data needs to be uploaded initially and researchers often resort to mailing hard drives \cite{baker2010next}. 
-\\
-\\
-An example of progress towards a cloud solution specifically for bioinformatics is Cloud BioLinux, which is a community driven project focussed on next generation sequencing. It is a toolkit which makes it easy to deploy virtual machines with bioinformatics infrastructure to a cloud platform. It bundles specific packages used in next generation sequence analysis, thereby decreasing configuration time and increasing maintainability. Instances of Cloud BioLinux have been tested on the Amazon EC2 cloud platform and on a private Eucalyptus cloud \cite{krampis2012cloud}.
-\\
-\\
-Micro clouds deployed on-site would overcome the challenge of uploading big data to a commercial cloud. However, since different research institutions would deploy their own micro clouds, a need for cloud interoperability arises to maintain the ability for researchers from different institutions to collaborate on the same data. The cloud interoperability will form a community cloud. A use case of a specific community cloud has some similar architectural properties to what we are looking for. These properties include autonomy (where each micro cloud will be managed independently), security, self management of nodes, and scalable \cite{jimenez2014deploying}.
-\\
-\\
-The traditional approach to creating a cloud platform which allows users to run their own instances of operating systems (such as Amazon EC2) is using virtualisation technology. This includes both hardware level emulation support and the software needed to manage the virtualisation. These virtualisation schemes use machine level virtualisation \cite{fink2014docker}. A new method, known as containerization provides much of the same functionality with added benefits of lower resource usage and better performance. Containers are able to run native machine instructions compared to virtualisation emulating every machine instruction \cite{dua2014virtualization}. Of course this means that containers are only useful when complete virtualisation is not needed, instead containers allow isolated application deployment and portability.
+
+\subsection{Docker}
+df
+\subsection{Kubernetes}
+Kubernetes is a container manager specifically designed to orchestrate docker containers. It is still a new system and Kubernetes version 1 has just recently been released which means it is ready for production use. Using containers instead of virtual machines has only recently become popular. The growth in popularity has resulted in a number of systems being developed which provide some overlapping functionality to Kubernetes. Kubernetes looks most promising as it is easy to use. Given that it is relatively new it is not cluttered and aims to solve a single problem of being a container manager. 
+
+\subsection{OpenStack}
+OpenStack was the first system looked at as a base for a container manager. After much trouble trying to get it set up properly in a development environment it was decided that there are more suitable systems to solve the problem. OpenStack is very cluttered with many inter dependent components.
 
 \section{Design}
-This project is a collaboration between UCT and UWC. We met with the supervisors at UWC and continued communication with feedback was ongoing throughout the project lifetime. UCT E-Research was subsequently also brought onboard the project. Both UWC and UCT E-Research provided valuable hardware resources enabling thorough evaluation in a real world setting.
+
 
 \subsection{Design Aims}
-The main problem that this project is trying to solve is processing of Big Data. This means that we have to be able to access the data that sits on the micro cloud. This project aims to address this problem by allowing code to be uploaded by a user and executed on local data. Users will do this by interacting with a front end web interface. The functionality of the platform is of primary concern, thus user interface design will not be considered and is outside the scope of this project. 
+The aim is to form a community cloud which will allow sharing of data and collaboration of users between multiple micro clouds.
 \\\\
-As multiple jobs can be submitted by multiple people, these jobs have to be scheduled properly to allow successful completion of each job. The whole platform should be fairly modular to allow pluggable components. This will allow possibilities such as adding a different scheduler or completely replacing the backend while keeping the front end web interface.
+Users will access data and submit jobs by interacting with a front end web interface. The functionality of the platform is of primary concern, thus user interface design will not be considered and is outside the scope of this project. 
 \\\\
-The final aim is to form a community cloud. The community cloud will allow sharing of data and collaboration of users between multiple micro clouds.
+As multiple jobs can be submitted by multiple people, these jobs have to be scheduled properly to allow successful completion of each job. 
+\\\\
+The whole platform should be modular to allow pluggable components. This will allow possibilities such as adding a different scheduler or completely replacing the backend while keeping the front end web interface.
+
 
 \subsection{Constraints}
 Micro cloud deployments for evaluation are limited to UWC and UCT E-Research. This means that the community cloud that will be evaluated will only consist of two micro clouds.
@@ -63,11 +81,14 @@ Micro cloud deployments for evaluation are limited to UWC and UCT E-Research. Th
 \includegraphics[scale=0.8]{img/microcloud_architecture}
 \caption{Micro Cloud Architecture}
 \end{figure}
-\subsubsection{Jobs}
+
+We met with the supervisors at UWC and continued communication was ongoing throughout the project lifetime. 
+
 This project's source code will be stored in a version control system (VCS). Software also needs to be verified for correctness to decrease the chance of bugs occurring. This will be done by writing unit tests to allow continuous testing at all stages of the project.
 
+
 \subsubsection{Micro Cloud Components}
-The platform will consist of a few different components including, a web interface, a scheduler, a cluster manager (the master node), multiple worker nodes, and finally a storage interface which will allow reading from and writing to persistent storage. 
+The platform will consist of components including: a web interface, a scheduler, a cluster manager (the master node), multiple worker nodes, and finally a storage interface which will allow reading from and writing to persistent storage. 
 
 
 
@@ -83,11 +104,7 @@ A job describes a single instance of code being uploaded to be executed.
 The micro cloud platform will make use of containers, more specifically Docker containers to execute code. Docker images are created using Dockerfiles which specify the execution environment and what files to execute. This means that submitting a job will require creating a Dockerfile and uploading this along with source code which will be executed. 
 
 \subsubsection{Cluster Manager - Kubernetes}
-In this project cluster manager is synonomous with container manager because the cluster will strictly operate by running containers. Kubernetes has been chosen as the cluster manager framework for managing the micro cloud. Kubernetes is specifically designed to run docker containers in a cluster. It is still a new system and Kubernetes version 1 has just recently been released which means it's ready for production use. Using containers instead of virtual machines has only recently become popular. The growth in popularity has resulted in a number of systems being developed which provide some overlapping functionality to Kubernetes. Kubernetes looks most promising as it is easy to use. Given that it is relatively new it is not cluttered and aims to solve a single problem of being a container manager. 
-
-\subsubsection{OpenStack}
-OpenStack was the first system looked at as a base for a container manager. After much trouble trying to get it set up properly in a development environment it was decided that there are more suitable systems to solve the problem. OpenStack is very cluttered with many inter dependent components. The OpenStack Swift API will however be supported for storage as it is very likely that the micro cloud platform could be deployed on top of OpenStack.
-
+In this project cluster manager is synonomous with container manager because the cluster will strictly operate by running containers. Kubernetes has been chosen as the cluster manager framework for managing the micro cloud.
 
 \subsubsection{Scheduler}
 The default scheduler will rely on a first-in-first-out (FIFO) queue to schedule jobs.
