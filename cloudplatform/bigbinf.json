@@ -2,25 +2,48 @@
 	"kind": "ReplicationController",
 	"apiVersion": "v1",
 	"metadata": {
-		"name": "bigbinf-builder",
+		"name": "bigbinf-stack",
 		"labels": {
-			"app": "bigbinf-builder"
+			"app": "bigbinf-stack"
 		}
 	},
 	"spec": {
 		"replicas": 1,
 		"selector": {
-			"app": "bigbinf-builder"
+			"app": "bigbinf-stack"
 		},
 		"template": {
 			"metadata": {
 				"labels": {
-					"app": "bigbinf-builder"
+					"app": "bigbinf-stack"
 				}
 			},
 			"spec": {
 				"volumes": null,
 				"containers": [
+					{
+						"name": "docker-registry",
+						"image": "bigbinf/registry",
+						"env":[
+							{
+								"name": "REGISTRY_HTTP_TLS_CERTIFICATE",
+								"value": "/certs/registry.crt"
+							},
+							{
+								"name": "REGISTRY_HTTP_TLS_KEY",
+								"value": "/certs/registry.key"
+							}
+						],
+						
+						"ports": [
+							{
+								"containerPort": 5000,
+								"port": 5000,
+								"protocol": "TCP"
+							}
+						],
+						"imagePullPolicy": "IfNotPresent"
+					},
 					{
 						"name": "bigbinf-builder",
 						"image": "bigbinf/builder",

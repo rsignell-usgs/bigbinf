@@ -1,52 +1,52 @@
 {
-  "kind": "ReplicationController",
-  "apiVersion": "v1",
-  "metadata": {
-    "name": "bigbinf-registry",
-    "labels": {
-      "app": "private-registry"
-    }
-  },
-  "spec": {
-    "replicas": 1,
-    "selector": {
-      "app": "private-registry"
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "private-registry"
-        }
-      },
-      "spec": {
-        "volumes": null,
-        "containers": [
-          {
-            "name": "docker-registry",
-            "image": "bigbinf/registry",
-            "env":[
-            	{
-            		"name": "REGISTRY_HTTP_TLS_CERTIFICATE",
-            		"value": "/certs/registry.crt"
-            	},
-            	{
-            		"name": "REGISTRY_HTTP_TLS_KEY",
-            		"value": "/certs/registry.key"
-            	}
-            ],
-            
-            "ports": [
-              {
-                "containerPort": 5000,
-                "port": 5000,
-                "protocol": "TCP"
-              }
-            ],
-            "imagePullPolicy": "IfNotPresent"
-          }
-        ]
-        
-      }
-    }
-  }
+	"kind": "ReplicationController",
+	"apiVersion": "v1",
+	"metadata": {
+		"name": "bigbinf-registry",
+		"labels": {
+			"app": "private-registry"
+		}
+	},
+	"spec": {
+		"replicas": 1,
+		"selector": {
+			"app": "private-registry"
+		},
+		"template": {
+			"metadata": {
+				"labels": {
+					"app": "private-registry"
+				}
+			},
+			"spec": {
+				"volumes": null,
+				"containers": [
+					{
+						"name": "docker-registry",
+						"image": "bigbinf/registry",
+						"env":[
+							{
+								"name": "REGISTRY_HTTP_TLS_CERTIFICATE",
+								"value": "/certs/registry.crt"
+							},
+							{
+								"name": "REGISTRY_HTTP_TLS_KEY",
+								"value": "/certs/registry.key"
+							}
+						],
+						
+						"ports": [
+							{
+								"containerPort": 5000,
+								"port": 5000,
+								"protocol": "TCP"
+							}
+						],
+						"imagePullPolicy": "IfNotPresent"
+					}
+				]
+				
+			}
+		}
+	}
 }
