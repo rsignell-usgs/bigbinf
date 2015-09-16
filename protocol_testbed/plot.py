@@ -36,6 +36,7 @@ def plot_packets(dumps):
         axarr[MAP_4[i]].set_xlabel("Time elapsed")
         axarr[MAP_4[i]].set_ylabel("Length of payload (bytes)")
 
+    pyplot.suptitle("Individual Packets", size=16)
     pyplot.show()
 
 def plot_aggregate(dumps):
@@ -45,25 +46,30 @@ def plot_aggregate(dumps):
     bar_width = 0.3
     index = range(4)
 
-    _, axarr = pyplot.subplots(3, sharex="col", sharey="row")
+    _, axarr = pyplot.subplots(2, sharex="col", sharey="row")
+
+    total_transferred = []
+    filesize = sum(int(d["file_size"]) for d in dumps)/len(dumps)
+    axarr[0].plot([filesize]*5, "r--", label="filesize")
 
     for i, p in enumerate(PROC_ARGS.keys()):
-        t_d, t_u, t_t = aggregate([sum_bytes(d) for d in dumps if d["protocol"] == p])
-        s_d, s_u, s_t = aggregate([calc_speed(d) for d in dumps if d["protocol"] == p])
+        _, _, t_t = aggregate([sum_bytes(d) for d in dumps if d["protocol"] == p])
+        _, _, s_t = aggregate([calc_speed(d) for d in dumps if d["protocol"] == p])
+        total_transferred.append(t_t)
 
-        filesize = sum(int(d["file_size"]) for d in dumps)/len(dumps)
-        ratio = (1-float(t_t)/float(filesize))*100
 
         # Transfer
-        axarr[0].bar(i , t_t, bar_width)
+        axarr[0].bar(i, t_t, bar_width)
         # Speed
         axarr[1].bar(i, s_t, bar_width)
-        # Overhead
-        axarr[2].bar(i, ratio, bar_width)
 
-    axarr[2].set_xticks(index)
-    axarr[2].set_xticklabels(("SCP", "HPN-SCP", "FTP", "GridFTP"))
+    diff = max(abs(x-filesize) for x in total_transferred)
+    axarr[0].set_ylim([filesize-2*diff, filesize+2*diff])
+    axarr[0].set_ylabel("Total transferred (bytes)")
+    axarr[0].legend()
+    axarr[1].set_ylabel("Total speed (bytes/s)")
+    axarr[1].set_xticks([i+bar_width/2 for i in index])
+    axarr[1].set_xticklabels(("SCP", "HPN-SCP", "FTP", "GridFTP"))
+    pyplot.suptitle("Aggregated Transfer Dumps", size=16)
     pyplot.show()
-
-
 

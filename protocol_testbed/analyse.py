@@ -76,7 +76,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--protocols", metavar="PROTOCOL", nargs="+",
                         default=PROC_ARGS.keys(),
                         help="Can be any combination of %s" % ", ".join(PROC_ARGS.keys()))
-    parser.add_argument("-n", "--number", metavar="NUMBER", type=int,
+    parser.add_argument("-n", "--number", metavar="NUMBER", type=int, default=None,
                         help="The number of dumps to evaluate, starting with the \
                               most recent. Defaults to 'all'")
     parser.add_argument("-s", "--test-filesize", metavar="SIZE", type=int,
@@ -84,11 +84,10 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--aggregate", action="store_true",
                         help="Aggregate dumps of the same type")
     parser.add_argument("-g", "--graph", nargs="+", default=None,
-                        help="Which graphs to plot. Can be 'packets', \
-                             'aggregate' or both.")
+                        choices=["aggregate", "packets"], help="Which graphs to plot")
     args = parser.parse_args()
 
     if args.graph:
-        args.n = 1
+        args.number = 1
 
     sys.exit(main())
