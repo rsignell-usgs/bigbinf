@@ -27,7 +27,7 @@ def main():
         print_stats(dumps)
     else:
         if "packets" in args.graph:
-            plot_packets(dumps, thin=args.thin)
+            plot_packets(dumps)
         if "aggregate" in args.graph:
             plot_aggregate(dumps)
 
@@ -86,9 +86,8 @@ if __name__ == "__main__":
                         help="Aggregate dumps of the same type")
     parser.add_argument("-g", "--graph", nargs="+", default=None,
                         choices=["aggregate", "packets"], help="Which graphs to plot")
-    parser.add_argument("-t", "--thin", action="store_true",
-                        help="If the -g parameter is used, this will format \
-                             the graphs for paper-format")
+    parser.add_argument("-i", "--individual", action="store_true",
+                        help="Aggregate dumps of the same type")
     args = parser.parse_args()
 
     if args.graph:
