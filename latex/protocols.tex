@@ -24,7 +24,11 @@ Andrew van Rooyen\\
 
 \date{30 August 2015}
 
-\toappear{This paper and associated code is available at \url{https://github.com/wraithy/bigbinf}}
+\toappear{
+	This paper and associated code is available at \url{https://github.com/wraithy/bigbinf}\\
+	The OpenSSH-Portable installation used for HPN-SSH was compiled frm \url{https://github.com/rapier1/openssh-portable}\\
+	For more information, please see \url{people.cs.uct.ac.za/~vryand003}
+}
 
 \maketitle
 \begin{abstract}
@@ -130,24 +134,45 @@ This allows for a much more controlled environment, because the tcpdump only cap
 
 This test process is run multiple times for statistical reasons, generating multiple log files.
 
-\begin{center}
-	\noindent\fbox{
-		\parbox{0.3\textwidth}{
-			\vspace*{5pt}
-			Example of a graph here
-			\vspace*{5pt}
-		}
-	}
-\end{center}
-
 A separate Python file then reads in the log files and parses them. This information is used to calculate metrics and display graphs.
 Operations can then be run by looking at the time of each packet, and the size of its payload. 
 
 This data can then be aggregated over multiple log files, and graphed using the matplotlib Python library.
-\\\\More info is needed here, and will be filled in once I have completed the analysis scripts.
+
+\section{Results}
+Please note that the following data was not collected from the final tests. It represents a test run between my lab machine at UCT, and my DigitalOcean VM in a datacenter in Amsterdam. The environment was not controlled, and the connection was absolutely \textit{not} stable. In fact, you will be able to see this from the graph depicting individual packets. This section will be replaced with real data, and just serves to demonstrate the \textit{kinds} of graphs that can be included. 
+
+\begin{figure*}
+	\centering
+	\includegraphics[height=\textheight]{img/testdata_packets.png}
+	\caption{A graphical representation of each transfer
+	         \label{fig:testdata_packets}}
+\end{figure*}
+Figure \ref{fig:testdata_packets} shows each packet of the transfer as a dot, where the x axis is time and the y axis shows the payload length in bytes.
+
+\begin{figure*}
+	\centering
+	\includegraphics[width=\textwidth]{img/testdata_detail.png}
+	\caption{The raw data, aggregated per protocol
+	         \label{fig:testdata_detail}}
+\end{figure*}
+Figure \ref{fig:testdata_detail} is what the analysis suite outputs if no arguments for graphs are specified. It is representing the same data, but shows it in a way which is easier to see actual values.
+
+\begin{figure*}
+	\centering
+	\includegraphics[width=\textwidth]{img/testdata_aggregate.png}
+	\caption{Aggregated data per protocol, with a line representing filesize
+	         \label{fig:testdata_aggregate}}
+\end{figure*}
+
+Figure \ref{fig:testdata_aggregate} shows the same data as figure \ref{fig:testdata_detail}, but displayed as a bar graph. This facilitates easier comparison between protocols, and makes it easy to see how much overhead (or compression) was used by comparing the bars to the filesize line.
+
+\section{Acknowledgements}
+TODO
 
 \bibliographystyle{ACM-Reference-Format-Journals}
 \bibliography{ref} 
 
 
 \end{document}
+
