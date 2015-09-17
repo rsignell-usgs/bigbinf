@@ -9,12 +9,16 @@ from helpers import TIME_FORMAT, aggregate, calc_speed, sum_bytes
 from protocols import PROC_ARGS
 
 PLOT_TIME_FORMAT = "%M:%S"
-MAP_4 = [(0, 0), (0, 1), (1, 0), (1, 1)]
 
-def plot_packets(dumps):
+def plot_packets(dumps, thin=False):
     """
     Plots time on the x axis vs length on the y axis
     """
+    if not thin:
+        map_4 = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    else:
+        map_4 = [0, 1, 2, 3]
+
     # Convert all the times to an offset from 0
     axes = []
 
@@ -28,13 +32,16 @@ def plot_packets(dumps):
         y = [l["length"] for l in dump["packets"]]
         axes.append((x, y))
 
-    _, axarr = pyplot.subplots(2, 2)
+    if not thin:
+        _, axarr = pyplot.subplots(2, 2)
+    else:
+        _, axarr = pyplot.subplots(4)
     for i in range(4):
-        axarr[MAP_4[i]].plot(axes[i][0], axes[i][1], ".")
-        axarr[MAP_4[i]].xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
-        axarr[MAP_4[i]].set_title(dumps[i]["protocol"])
-        axarr[MAP_4[i]].set_xlabel("Time elapsed")
-        axarr[MAP_4[i]].set_ylabel("Length of payload (bytes)")
+        axarr[map_4[i]].plot(axes[i][0], axes[i][1], ".")
+        axarr[map_4[i]].xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
+        axarr[map_4[i]].set_title(dumps[i]["protocol"])
+        axarr[map_4[i]].set_xlabel("Time elapsed")
+        axarr[map_4[i]].set_ylabel("Length of payload (bytes)")
 
     pyplot.suptitle("Individual Packets", size=16)
     pyplot.show()
