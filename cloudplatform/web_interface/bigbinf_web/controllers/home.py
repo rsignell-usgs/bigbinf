@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template, request, jsonify, abort, Response, stream_with_context
+from flask import Blueprint, render_template, request, jsonify
 from werkzeug import secure_filename
 from bigbinf_web.lib.docker_remote import *
 from bigbinf_web import config
-from uuid import uuid4
-import json
+from bigbinf_web.scheduling import scheduling
+import tarfile
+import tempfile
+from tarfile import TarError
+import cStringIO
 
 homeBP = Blueprint('home',__name__)
 
@@ -15,32 +18,29 @@ def index():
 
 
 @homeBP.route('/submitjob', methods=['POST'])
-def submitJob():
+def submit_job():
 	file = request.files['file']
 	if file:
-		filename = secure_filename(file.filename)
-		imagename = str(uuid4())
-		builder_url = '%s:%s' % (config.builder_host, config.builder_port)
-		registry_url = '%s:%s' % (config.registry_host, config.registry_port)
+		try:
+			file.filename = secure_filename(file.filename)
 
-		def job_generator():
-			response = remote_build(file, builder_url, registry_url, imagename)
-			for line in response:
-				build_status = line
-				print line
-				yield build_status
+			# only except tar files with supported compression
+			tar_file = tarfile.open(fileobj=file)
+			tar_file.close()
+			# tarfile reads some of the file to find the compression
+			file.seek(0)
+			
+			# flask closes its file after the request is complete.
+			# create a seperate file which stays open.
+			temp = cStringIO.StringIO()
+			file.save(temp)
+			temp.seek(0)
+			file = temp
 
-			build_success_str = 'Successfully built'
-			if not build_success_str in build_status:
-				abort(400)
+			scheduling.add_job(file)
+			response = jsonify({'status': 'build_queue'})
+			
+		except TarError as e:
+			response = jsonify({'status': 'bad_file', 'supported_filetypes':[{'filetype': 'tar'}, {'filetype': 'tar.gz'}, {'filetype': 'tar.bz2'}]}), 400
 
-			response = remote_push_registry(builder_url, registry_url, imagename)
-			response = list(response)
-			for line in response:
-				print line
-			push_success_str = 'Image successfully pushed'
-			if not push_success_str in response[-2]:
-				abort(400)
-			#jsonify doesn't work with streaming for some reason
-			yield json.dumps({'stream': 'Successfully pushed image to private repository'})
-	return Response(stream_with_context(job_generator()), mimetype='application/json')
+		return response
