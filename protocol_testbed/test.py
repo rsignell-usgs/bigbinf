@@ -50,7 +50,7 @@ def test(protocol, datestring):
     if not os.path.exists("packet_dumps"):
         os.makedirs("packet_dumps")
 
-    with open("packet_dumps/%s_%s.dump" % (protocol_name, datestring), "w") as f:
+    with open("packet_dumps/%s_%s_%s.dump" % (protocol_name, filename, datestring), "w") as f:
         json.dump(dump.output, f)
 
 if __name__ == "__main__":
