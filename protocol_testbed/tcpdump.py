@@ -7,6 +7,7 @@ import os
 import socket
 import struct
 import subprocess
+import time
 
 BUFFER_FILE = "buffer"
 
@@ -41,11 +42,13 @@ class TcpDump(object):
         self.handle = subprocess.Popen(["tcpdump", "-i", self.if_name, packet_filter],
                                        stdout=self.buff,
                                        stderr=None)
+        time.sleep(1)
 
     def stop(self):
         """
         Stops the subprocess
         """
+        time.sleep(1)
         self.handle.terminate()
         self.buff.close()
         with open(BUFFER_FILE) as f:
