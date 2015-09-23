@@ -6,7 +6,7 @@
 		},
 		"spec": {
 				"selector": {
-						"app": "private-registry"
+						"app": "bigbinf-stack"
 				},
 				"clusterIP": "10.0.0.47",
 				"ports": [

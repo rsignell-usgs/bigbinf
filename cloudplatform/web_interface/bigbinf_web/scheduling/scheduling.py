@@ -1,13 +1,16 @@
 from bigbinf_web.lib.docker_remote import *
+from bigbinf_web.lib.kubernetes_remote import *
 from Queue import Queue
-from bigbinf_web import config
+from bigbinf_web.config import config
+from bigbinf_web.config import job_config
 from uuid import uuid4
 from threading import Thread
 from job import Job
 from datetime import datetime
 from collections import deque
 import time
-
+import json
+import copy
 
 build_queue = Queue()
 ready_queue = Queue()
@@ -66,8 +69,18 @@ class RunScheduler(Thread):
 		self.running_queue = running_queue
 
 	def run_job(self, job):
-		print('running job')
-		time.sleep(10)
+		k8s_url = 'http://%s:%s' % (config.kubernetes_host, config.kubernetes_port)
+		registry_url = '%s:%s' % (config.node_registry_host, config.registry_port)
+		image_name = '%s/%s' % (registry_url, job.image_name)
+		pod_config = copy.deepcopy(job_config.pod)
+		pod_config['metadata']['name'] = job.image_name
+		pod_config['spec']['containers'][0]['name'] = job.image_name
+		pod_config['spec']['containers'][0]['image'] = image_name
+		print(pod_config)
+		pod_config = json.dumps(pod_config)
+		create_pod(k8s_url, pod_config)
+		#print('running job')
+		#time.sleep(10)
 		return True
 
 	def run(self):
