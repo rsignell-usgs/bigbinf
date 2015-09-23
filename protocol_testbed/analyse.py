@@ -10,7 +10,6 @@ from helpers import aggregate,\
                     calc_speed,\
                     get_dump_fnames,\
                     sum_bytes
-from plot import plot_packets, plot_aggregate
 
 def main():
     """
@@ -26,6 +25,7 @@ def main():
     if not args.graph:
         print_stats(dumps)
     else:
+        from plot import plot_packets, plot_aggregate
         if "packets" in args.graph:
             plot_packets(dumps)
         if "aggregate" in args.graph:

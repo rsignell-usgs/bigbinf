@@ -5,11 +5,10 @@ import argparse
 from datetime import datetime
 import json
 import os
-import socket
 import sys
 
-from tcpdump import TcpDump
-from protocols import PROC_ARGS, Protocol, get_ip_address
+from tcpdump import TcpDump, get_ip_address
+from protocols import PROC_ARGS, Protocol
 
 def main():
     """
@@ -36,9 +35,8 @@ def test(protocol, datestring):
     if "@" in remote_hostname:
         remote_hostname = remote_hostname[remote_hostname.find("@")+1:]
 
-    remote_ip = socket.gethostbyname(remote_hostname)
     local_ip = get_ip_address(args.interface)
-    dump = TcpDump(protocol, filepath, args.interface, remote_ip, local_ip)
+    dump = TcpDump(protocol, filepath, args.interface, remote_hostname, local_ip)
 
     dump.start()
     protocol_obj.run()
