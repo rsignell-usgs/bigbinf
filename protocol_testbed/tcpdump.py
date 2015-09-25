@@ -9,6 +9,8 @@ import struct
 import subprocess
 import time
 
+from helpers import sum_bytes, get_time_elapsed
+
 BUFFER_FILE = "buffer"
 
 class TcpDump(object):
@@ -53,22 +55,31 @@ class TcpDump(object):
         self.buff.close()
         with open(BUFFER_FILE) as f:
             stdout = f.read().split("\n")
-        print "captured packets: %s" % len(stdout)
         os.remove("buffer")
+
+        print
+        print "Saving dump file..."
+        print
 
         # get rid of blank lines
         stdout = [line for line in stdout if line]
-        packets = [get_packet_transfer_dict(line, self.remote_hostname,
-                                            self.remote_ip) for line in stdout]
+        packets = [get_dict(line, self.remote_hostname, self.remote_ip) for line in stdout]
+        packets = [p for p in packets if p]
+
+        total_bytes = sum_bytes(packets)
 
         self.output = {"protocol": self.protocol,
                        "file_size": os.path.getsize(self.filename),
                        "utc_start_time": self.utc_start_time,
                        "host_from": self.remote_hostname,
                        "host_to": self.local_ip,
-                       "packets": [p for p in packets if p]}
+                       "bytes_down": total_bytes[0],
+                       "bytes_up": total_bytes[1],
+                       "bytes_total": total_bytes[2],
+                       "time": get_time_elapsed(packets),
+                       "packets": packets}
 
-def get_packet_transfer_dict(line, remote_hostname, remote_ip):
+def get_dict(line, remote_hostname, remote_ip):
     """
     Represents a single line of tcpdump output
     """
@@ -82,7 +93,7 @@ def get_packet_transfer_dict(line, remote_hostname, remote_ip):
         direction = "down" if elements[2].startswith((remote_hostname, remote_ip)) else "up"
         return {"direction": direction,
                 "time": elements[0],
-                "length": elements[-1]}
+                "length": int(elements[-1])}
     else:
         return None
 

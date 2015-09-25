@@ -39,13 +39,13 @@ def calc_speed(dump):
     """
     Calculates the average (down, up, total) speed of a transfer
     """
-    length = sum_bytes(dump)
-    time = get_time_elapsed(dump)
+    length = sum_bytes(dump["packets"])
+    time = get_time_elapsed(dump["packets"])
     return (length[0]/time,
             length[1]/time,
             length[2]/time)
 
-def sum_bytes(dump):
+def sum_bytes(packets):
     """
     Returns the (down, up, total) bytes of the transfer
     """
@@ -53,19 +53,19 @@ def sum_bytes(dump):
     up = 0
     total = 0
 
-    for l in dump["packets"]:
-        if l["direction"] == "up":
-            up += int(l["length"])
+    for p in packets:
+        if p["direction"] == "up":
+            up += int(p["length"])
         else:
-            down += int(l["length"])
-        total += int(l["length"])
+            down += int(p["length"])
+        total += int(p["length"])
 
     return (down, up, total)
 
-def get_time_elapsed(dump):
+def get_time_elapsed(packets):
     """
     Returns the total time elapsed, in seconds
     """
-    t_min = datetime.strptime(min(l["time"] for l in dump["packets"]), TIME_FORMAT)
-    t_max = datetime.strptime(max(l["time"] for l in dump["packets"]), TIME_FORMAT)
+    t_min = datetime.strptime(min(p["time"] for p in packets), TIME_FORMAT)
+    t_max = datetime.strptime(max(p["time"] for p in packets), TIME_FORMAT)
     return (t_max - t_min).total_seconds()
