@@ -1,13 +1,22 @@
 pod = {
 "apiVersion": "v1",
 "kind": "Pod",
-"metadata": {"name":""},
+"metadata": {
+	"name":"",
+	"labels":{
+		"app": "batch-job"
+	}
+},
 "spec":{
 	"containers":[
-	{
-		"name": "",
-		"image": "",
-	}
-  ]
+		{
+			"name": "",
+			"image": ""
+			
+
+		}
+ 	],
+	"RestartPolicy": "Never"
+
  }
 }

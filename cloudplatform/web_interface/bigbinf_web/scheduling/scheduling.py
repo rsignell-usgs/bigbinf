@@ -15,9 +15,11 @@ import copy
 build_queue = Queue()
 ready_queue = Queue()
 running_queue = deque()
+job_list = {}
 
 
 class BuildScheduler(Thread):
+	"""Schedules dockerfiles to be built"""
 	def __init__(self, build_queue, ready_queue):
 		super(BuildScheduler, self).__init__(group=None, target=None, name=None, verbose=None)
 		self.build_queue = build_queue
@@ -63,6 +65,7 @@ class BuildScheduler(Thread):
 
 
 class RunScheduler(Thread):
+	"""schedules built images to be executed"""
 	def __init__(self, ready_queue, running_queue):
 		super(RunScheduler, self).__init__(group=None, target=None, name=None, verbose=None)
 		self.ready_queue = ready_queue
@@ -79,8 +82,6 @@ class RunScheduler(Thread):
 		print(pod_config)
 		pod_config = json.dumps(pod_config)
 		create_pod(k8s_url, pod_config)
-		#print('running job')
-		#time.sleep(10)
 		return True
 
 	def run(self):
@@ -90,9 +91,35 @@ class RunScheduler(Thread):
 			self.running_queue.append(job)
 			job.status = 'running'
 			success = self.run_job(job)	
-			if success:
-				self.running_queue.remove(job)
-				job.status = 'complete'
+			
+
+
+class JobWatcher(Thread):
+	"""This class watches a kubernetes stream to see when jobs complete 
+	and removes completed jobs from the running queue"""
+
+	def __init__(self, running_queue, job_list):
+			super(JobWatcher, self).__init__(group=None, target=None, name=None, verbose=None)
+			self.running_queue = running_queue
+			self.job_list = job_list
+
+	def run(self):
+		k8s_url = 'http://%s:%s' % (config.kubernetes_host, config.kubernetes_port)
+		stream = watch_pods(k8s_url, config.job_label)
+		for event in stream.iter_lines():
+			event = json.loads(event)
+			job_name = event['object']['metadata']['name']
+			job_state = event['object']['status']
+			#print json.dumps(job_state, indent=4)
+
+			if job_state['phase'] == 'Succeeded':
+				delete_pod(k8s_url, job_name)
+				job = self.job_list.get(job_name, None)
+				if job:
+					self.running_queue.remove(job)
+					del self.job_list[job_name]
+
+		
 
 
 
@@ -104,6 +131,7 @@ def add_job(file):
 	job = Job(file, builder_url, registry_url, image_name, timestamp)
 	job.status = 'build'
 	build_queue.put(job)
+	job_list[image_name] = job
 
 	print('added job to build queue')
 
@@ -122,3 +150,7 @@ build_scheduler.start()
 run_scheduler = RunScheduler(ready_queue, running_queue)
 run_scheduler.daemon = True
 run_scheduler.start()
+
+job_watcher = JobWatcher(running_queue, job_list)
+job_watcher.daemon = True
+job_watcher.start()

@@ -8,3 +8,6 @@ builder_port = '5002'
 
 kubernetes_host = 'localhost'
 kubernetes_port = '8080'
+
+
+job_label = 'app=batch-job'
