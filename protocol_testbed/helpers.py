@@ -1,12 +1,26 @@
 """
 Common functions used for analysis
 """
-import os
 from datetime import datetime
+import json
+import os
 
 from protocols import PROC_ARGS
 
 TIME_FORMAT = "%H:%M:%S.%f"
+
+def get_dumps(protocols, n):
+    """
+    Returns dumps in json
+    """
+    fnames = get_dump_fnames(protocols, n)
+    dumps = []
+
+    for fname in fnames:
+        with open("packet_dumps/%s" % fname) as f:
+            dumps.append(json.load(f))
+
+    return dumps
 
 def get_dump_fnames(protocols, n):
     """

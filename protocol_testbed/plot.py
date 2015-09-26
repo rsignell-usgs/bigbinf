@@ -10,7 +10,7 @@ from protocols import PROC_ARGS
 
 PLOT_TIME_FORMAT = "%M:%S"
 
-def plot_packets(dumps):
+def plot_packets_4(dumps):
     """
     Plots time on the x axis vs length on the y axis
     """
@@ -19,7 +19,6 @@ def plot_packets(dumps):
     axes = []
 
     for dump in dumps:
-        print "Processing %s dump" % dump["protocol"]
         x = [datetime.strptime(l["time"], TIME_FORMAT) for l in dump["packets"]]
         t0 = min(x)
         dt = timedelta(hours=t0.hour, minutes=t0.minute, seconds=t0.second,

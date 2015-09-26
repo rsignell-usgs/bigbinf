@@ -2,32 +2,26 @@
 Reads in .dump files and interprets them
 """
 import argparse
-import json
 import sys
 
 from protocols import PROC_ARGS
 from helpers import aggregate,\
                     calc_speed,\
-                    get_dump_fnames,\
+                    get_dumps,\
                     sum_bytes
 
 def main():
     """
     Reads the dump files and runs the analysis
     """
-    fnames = get_dump_fnames(protocols=args.protocols, n=args.number)
-    dumps = []
-
-    for fname in fnames:
-        with open("packet_dumps/%s" % fname) as f:
-            dumps.append(json.load(f))
+    dumps = get_dumps(protocols=args.protocols, n=args.number)
 
     if not args.graph:
         print_stats(dumps)
     else:
-        from plot import plot_packets, plot_aggregate
+        from plot import plot_packets_4, plot_aggregate
         if "packets" in args.graph:
-            plot_packets(dumps)
+            plot_packets_4(dumps)
         if "aggregate" in args.graph:
             plot_aggregate(dumps)
 
