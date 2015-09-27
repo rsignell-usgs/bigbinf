@@ -36,10 +36,10 @@ Brendan D. Ball\\
 Cloud infrastructure has the potential to simplify the processing of big data sets, as well as collaboration between remote researchers. Data could be kept in a cloud solution and researchers would execute code on the raw data.
 \\
 \\
-Configuring the execution environment can often consume valuable time, particularly in the context of bioinformatics. Cloud BioLinux is part of a cloud solution which solves this issue. This toolkit makes it easy to deploy virtual machines to a cloud platform with bioinformatics infrastructure pre-configured. It bundles specific packages used in next generation sequence analysis, thereby decreasing configuration time and increasing maintainability. Instances of Cloud BioLinux have been tested on the Amazon EC2 cloud platform and on a private Eucalyptus cloud \cite{krampis2012cloud}. 
+Configuration of the execution environment can be time consuming, particularly in the context of bioinformatics. Cloud BioLinux is part of a cloud solution which solves this issue. This toolkit makes it easy to deploy virtual machines to a cloud platform with bioinformatics infrastructure pre-configured. It bundles specific packages used in next generation sequence analysis, thereby decreasing configuration time and increasing maintainability. Instances of Cloud BioLinux have been tested on the Amazon EC2 cloud platform and on a private Eucalyptus cloud \cite{krampis2012cloud}. 
 \\
 \\
-Commercial clouds such as Amazon EC2 however do not solve the problem of uploading big data sets to their cloud infrastructure \cite{baker2010next}. Micro clouds deployed on-site would overcome this challenge by keeping the data locally while still reaping the benefits of a cloud platform. However, since different research institutions would deploy their own micro clouds, cloud interoperability is required to allow researchers from different institutions to collaborate on the same data. The cloud interoperability will form a community cloud. A use-case of a specific community cloud  by \cite{jimenez2014deploying} has similar architectural properties to what we are looking for. These properties include autonomy (where each micro cloud will be managed independently), security, self management of nodes, and scalability.
+Commercial clouds such as Amazon EC2, however, do not solve the problem of uploading big data sets to their cloud infrastructure \cite{baker2010next}. Micro clouds deployed on-site would overcome this challenge by keeping the data locally, while still reaping the benefits of a cloud platform. However, with different research institutions deploying their own micro clouds, cloud interoperability is required to allow researchers from different institutions to collaborate on the same data. The cloud interoperability creates a community cloud. A use-case of a specific community cloud  by \cite{jimenez2014deploying} has similar architectural properties to what we are looking for. These properties include autonomy (where each micro cloud will be managed independently), security, self management of nodes, and scalability.
 \\
 \\
 Before we go into more detail about community clouds, we first have to look at how each micro cloud is implemented. The traditional approach to creating a cloud platform which allows users to run their own instances of operating systems (such as Amazon EC2) uses virtualisation technology. This includes both hardware level emulation support and the software needed to manage the virtualisation. These virtualisation schemes use machine level virtualisation \cite{fink2014docker}. \\\\
@@ -53,9 +53,9 @@ In the spirit of collaboration, UCT and UWC are collaborating on this project. U
 \section{Background}
 
 \subsection{Docker}
-Docker is an implementation of a linux container management tool. Docker functions similarly to virtualisation in that it uses an image to quickly launch a pre-configured isolated environment. The key difference is that containers directly uses the linux kernel on the host machine to run native instructions. This allows containers to be lightweight and launched in a fraction of the time it takes for a virtual machine to launch \cite{boettiger2014introduction}. 
+Docker is an implementation of a linux container management tool. Docker functions similarly to virtualisation in that it uses an image to quickly launch a pre-configured isolated environment. The key difference is that containers directly uses the linux kernel on the host machine to run native instructions. This allows containers to be lightweight and launched in a fraction of the time it takes for a virtual machine to launch \cite{joy2015performance}. 
 \\\\
-Docker builds on linux containers by implementing its own image format which makes use of an AUFS filesystem. This allows a docker image to be built up by a number of intermediate layers. Layers can be added or removed without affecting another layer in the image \cite{felter2014updated}.
+Docker builds on linux containers by implementing its own image format which makes use of an AUFS filesystem. This allows a docker image to be built up by a number of intermediate layers. Layers can be added or removed without affecting another layer in the image \cite{boettiger2014introduction}.
 \\\\
 The layered approach to creating a docker image allows images to be built using a script called a Dockerfile. Defining an image by a script makes docker images much more portable and reproducible \cite{boettiger2014introduction}.
 
@@ -64,7 +64,7 @@ To create a cloud platform which makes use of containers, we need a framework to
 
 
 \subsection{Kubernetes}
-Kubernetes is purely a container manager specifically designed to orchestrate docker containers. It is still a new system and Kubernetes version 1 has just recently been released which means it is ready for production use. Using containers instead of virtual machines has only recently become popular. The growth in popularity has resulted in a number of systems being developed which provide some overlapping functionality to Kubernetes. Kubernetes looks most promising as it is easy to use. Given that it is relatively new it is not cluttered and aims to solve a single problem of being a container manager \cite{kubernetes}. 
+Kubernetes is purely a container manager specifically designed to orchestrate docker containers. It is still a new system and Kubernetes version 1 has just recently been released which means it is ready for production use. Using containers instead of virtual machines has only recently become popular. The growth in popularity has resulted in a number of systems being developed which provide some overlapping functionality to Kubernetes. Kubernetes looks most promising as it is easy to use. Given that it is relatively new it is not cluttered and aims to solve a single problem of being a container manager \cite{googleborg}. 
 
 
 \section{Design}
@@ -100,7 +100,7 @@ The platform will consist of components including: a web interface, a scheduler,
 \end{figure}
 
 \subsection{Evaluation}
-The functionality of the micro cloud will be evaluated by submitting sample analysis code as a job. The analysis code will be searching against a genome database from NCBI's NR database which is publicly available at \cite{ncbinrdb}. The analysis code will make use of the BLAST+ search tool \cite{camacho2009blast}. The code itself will be custom queries. Different sized jobs can be tested by increasing or decreasing the size of the query which makes it easily scalable to have different sized test cases.
+The functionality of the micro cloud will be evaluated by submitting sample analysis code as a job. The analysis code will be searching against a genome database from NCBI's NR database which is publicly available \cite{pruitt2005ncbi}. The analysis code will make use of the BLAST+ search tool \cite{camacho2009blast}. The code itself will be custom queries. Different sized jobs can be tested by increasing or decreasing the size of the query which makes it easily scalable to have different sized test cases.
 
 
 
