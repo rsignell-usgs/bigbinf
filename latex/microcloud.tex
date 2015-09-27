@@ -39,25 +39,25 @@ Cloud infrastructure has the potential to simplify the processing of big data se
 Configuration of the execution environment can be time consuming, particularly in the context of bioinformatics. Cloud BioLinux is part of a cloud solution which solves this issue. This toolkit makes it easy to deploy virtual machines to a cloud platform with bioinformatics infrastructure pre-configured. It bundles specific packages used in next generation sequence analysis, thereby decreasing configuration time and increasing maintainability. Instances of Cloud BioLinux have been tested on the Amazon EC2 cloud platform and on a private Eucalyptus cloud \cite{krampis2012cloud}. 
 \\
 \\
-Commercial clouds such as Amazon EC2, however, do not solve the problem of uploading big data sets to their cloud infrastructure \cite{baker2010next}. Micro clouds deployed on-site would overcome this challenge by keeping the data locally, while still reaping the benefits of a cloud platform. However, with different research institutions deploying their own micro clouds, cloud interoperability is required to allow researchers from different institutions to collaborate on the same data. The cloud interoperability creates a community cloud. A use-case of a specific community cloud  by \cite{jimenez2014deploying} has similar architectural properties to what we are looking for. These properties include autonomy (where each micro cloud will be managed independently), security, self management of nodes, and scalability.
+Commercial clouds such as Amazon EC2, however, do not solve the problem of uploading big data sets to their cloud infrastructure \cite{baker2010next}. Micro clouds deployed on-site would overcome this challenge by keeping the data locally, while still reaping the benefits of a cloud platform. However, with different research institutions deploying their own micro clouds, cloud interoperability is required to allow researchers from different institutions to collaborate on the same data. The cloud interoperability creates a community cloud. A use-case of a specific community cloud  by Jimenez et al. \cite{jimenez2014deploying} contains core architectural properties needed for a successful community cloud. These properties include autonomy (where each micro cloud will be managed independently), security, self management of nodes, and scalability.
 \\
 \\
-Before we go into more detail about community clouds, we first have to look at how each micro cloud is implemented. The traditional approach to creating a cloud platform which allows users to run their own instances of operating systems (such as Amazon EC2) uses virtualisation technology. This includes both hardware level emulation support and the software needed to manage the virtualisation. These virtualisation schemes use machine level virtualisation \cite{fink2014docker}. \\\\
-A new method, known as containerization, provides much of the same functionality, with added benefits of lower resource usage and better performance. Containers are able to run native machine instructions compared to virtualisation emulating every machine instruction \cite{dua2014virtualization}. Of course this means that containers are only useful when complete virtualisation is not needed, instead containers allow isolated application deployment and portability.
+The traditional approach to creating a cloud platform allows users to run their own instances of operating systems (such as Amazon EC2) via virtualisation technology. This includes both hardware level emulation support and the software needed to manage the virtualisation. These virtualisation schemes use machine level virtualisation \cite{fink2014docker}. \\\\
+A new method, known as containerization, provides much of the same functionality, with added benefits of lower resource usage and better performance. Containers are able to run native machine instructions compared to virtualisation emulating every machine instruction \cite{dua2014virtualization}. Containers are only useful when complete virtualisation is not needed, but allow for isolated application deployment and portability.
 \\\\
 In this work, we aim to take advantage of containers and enable efficient processing of Big Data through the use of micro clouds. We also aim to increase collaboration by connecting the micro clouds to form a community cloud.
 \\\\
-In the spirit of collaboration, UCT and UWC are collaborating on this project. UCT E-Research was subsequently also brought onboard the project. Both UWC and UCT E-Research provided valuable hardware resources enabling thorough evaluation in a real world setting.
+UCT and UWC are collaborators on this project, as is UCT E-Research. Both UWC and UCT E-Research provided valuable hardware resources enabling thorough evaluation in a real world setting.
 
 
 \section{Background}
 
 \subsection{Docker}
-Docker is an implementation of a linux container management tool. Docker functions similarly to virtualisation in that it uses an image to quickly launch a pre-configured isolated environment. The key difference is that containers directly uses the linux kernel on the host machine to run native instructions. This allows containers to be lightweight and launched in a fraction of the time it takes for a virtual machine to launch \cite{joy2015performance}. 
+Docker is an implementation of a Linux container management tool. Docker functions similarly to virtualisation. It uses an image to quickly launch a pre-configured isolated environment. The key difference is that containers directly uses the Linux kernel on the host machine to run native instructions. Containers are lightweight and launched in a fraction of time of a virtual machine \cite{joy2015performance}. 
 \\\\
-Docker builds on linux containers by implementing its own image format which makes use of an AUFS filesystem. This allows a docker image to be built up by a number of intermediate layers. Layers can be added or removed without affecting another layer in the image \cite{boettiger2014introduction}.
+Docker builds on Linux containers by implementing an image format which makes use of an AUFS filesystem. This allows a docker image to be built up from a number of intermediate layers. Layers can be added or removed without affecting another layer in the image \cite{boettiger2014introduction}.
 \\\\
-The layered approach to creating a docker image allows images to be built using a script called a Dockerfile. Defining an image by a script makes docker images much more portable and reproducible \cite{boettiger2014introduction}.
+The layered approach to creating a Docker image allows images to be built using a script called a Dockerfile. Defining an image with a script makes docker images much more portable and reproducible compared to creating an image from a running environment, as is the with virtualisation \cite{boettiger2014introduction}.
 
 \subsection{OpenStack}
 To create a cloud platform which makes use of containers, we need a framework to manage containers in a cluster which will perform scheduling and resource allocation. OpenStack was the first system looked at as a base for a container manager. After much trouble trying to get it set up properly in a development environment it was decided that there are more suitable systems to solve the problem. OpenStack is very cluttered with many inter dependent components \cite{affetti2015adock}. The functionality that we require from a cluster manager for this project is limited compared to everything that OpenStack provides. Thus we looked for a smaller, simpler cluster manager to suit our needs.
@@ -76,21 +76,17 @@ The aim is to form a community cloud which will allow sharing of data and collab
 Users will access data and submit jobs by interacting with a front end web interface. The functionality of the platform is of primary concern, thus user interface design will not be considered and is outside the scope of this project. 
 \\\\
 As multiple jobs can be submitted by multiple people, these jobs have to be scheduled properly to allow successful completion of each job. 
-\\\\
-The whole platform should be modular to allow pluggable components. This will allow possibilities such as adding a different scheduler or completely replacing the backend while keeping the front end web interface.
 
 
 \subsection{Constraints}
-Micro cloud deployments for evaluation are limited to UWC and UCT E-Research. This means that the community cloud that will be evaluated will only consist of two micro clouds.
+Micro cloud deployments for evaluation are limited to UWC and UCT E-Research. The evaluation is limited to one community cloud containing two micro clouds.
 
-\subsection{Approach}
+\subsection{Software Engineering}
 
-
-This project's source code will be stored in a version control system (VCS). Software also needs to be verified for correctness to decrease the chance of bugs occurring. This will be done by writing unit tests to allow continuous testing at all stages of the project.
-
+We implemented a proof of concept of the community cloud. The aim was not to focus on software engineering methodologies. However to allow for reproducibility the source code is stored in a Git repository hosted on Github (Git is a version control system). 
 
 \subsubsection{Micro Cloud Components}
-The platform will consist of components including: a web interface, a scheduler, an image builder and image repository, a cluster manager (the master node), multiple worker nodes, and finally a storage interface which will allow reading from and writing to persistent storage. See figure \ref{fig:architecture} for a diagram of how these components are connected.
+The platform consists of the follwing components: a web interface, a scheduler, an image builder and image repository, a cluster manager (the master node), multiple worker nodes, and a storage interface which allows reading from and writing to persistent storage. Figure \ref{fig:architecture} shows the connection between components.
 
 \begin{figure}
 \centering
@@ -100,15 +96,15 @@ The platform will consist of components including: a web interface, a scheduler,
 \end{figure}
 
 \subsection{Evaluation}
-The functionality of the micro cloud will be evaluated by submitting sample analysis code as a job. The analysis code will be searching against a genome database from NCBI's NR database which is publicly available \cite{pruitt2005ncbi}. The analysis code will make use of the BLAST+ search tool \cite{camacho2009blast}. The code itself will be custom queries. Different sized jobs can be tested by increasing or decreasing the size of the query which makes it easily scalable to have different sized test cases.
+The functionality of the micro cloud is evaluated by submitting sample analysis code as a job. The analysis code searches against a genome database from NCBI's NR database which is publicly available \cite{pruitt2005ncbi}. The analysis code makes use of the BLAST+ search tool \cite{camacho2009blast}. The code itself consists of custom queries. Different sized jobs are tested by increasing or decreasing the size of the query, which makes it easily scalable to different sized test cases.
 
 
 
 \subsection{Implementation}
 
 
-A job describes a single instance of code being uploaded to be executed. 
-The micro cloud platform will make use of containers, more specifically Docker containers to execute code. Docker images are created using dockerfiles which specify the execution environment and what files to execute. This means that submitting a job will require creating a Dockerfile and uploading this along with source code which will be executed. The Dockerfile and source code must be uploaded together packaged as a single tarball.  
+A job describes a single instance of code uploaded for execution. 
+The micro cloud platform uses containers, more specifically Docker containers to execute code. Docker images are created with dockerfiles which specify the execution environment and what files to execute. Submitting a job requires a Dockerfile and source code to be executed, uploaded together packaged as a single tarball.  
 
 \subsubsection{Cluster Manager - Kubernetes}
 In this project cluster manager is synonomous with container manager because the cluster will strictly operate by running containers. Kubernetes has been chosen as the cluster manager framework for managing the micro cloud.
@@ -129,8 +125,6 @@ draw
 \subsubsection{Community Cloud}
 A community cloud will be formed by implementing a centralised discovery service. This will improve scalability compared to a full mesh network between micro clouds.
 
-\subsubsection{VCS}
-Git will be used as the version control system for storing all the source code for the micro cloud platform.
 
 
 \bibliographystyle{ACM-Reference-Format-Journals}
