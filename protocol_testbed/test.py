@@ -7,6 +7,7 @@ import json
 import os
 import sys
 
+from random import getrandbits
 from tcpdump import TcpDump, get_ip_address
 from protocols import PROC_ARGS, Protocol
 
@@ -15,11 +16,12 @@ def main():
     Do a transfer and log the packet data
     """
     datestring = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    batch_id = getrandbits(64)
 
     for protocol in PROC_ARGS:
-        test(protocol, datestring)
+        test(protocol, datestring, batch_id)
 
-def test(protocol, datestring):
+def test(protocol, datestring, batch_id):
     """
     Takes a Protocol object and runs a test for it
     Outputs the dump to a file
@@ -36,7 +38,8 @@ def test(protocol, datestring):
         remote_hostname = remote_hostname[remote_hostname.find("@")+1:]
 
     local_ip = get_ip_address(args.interface)
-    dump = TcpDump(protocol, filepath, args.interface, remote_hostname, local_ip)
+
+    dump = TcpDump(batch_id, protocol, filepath, args.interface, remote_hostname, local_ip)
 
     dump.start()
     protocol_obj.run()

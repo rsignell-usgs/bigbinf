@@ -18,10 +18,11 @@ class TcpDump(object):
     Captures tcpdump output for traffic between a remote host and local host
     """
 
-    def __init__(self, protocol, filename, if_name, remote_hostname, local_ip):
+    def __init__(self, batch_id, protocol, filename, if_name, remote_hostname, local_ip):
         """
         Takes either 0 or 2 hosts
         """
+        self.batch_id = batch_id
         self.protocol = protocol
         self.filename = filename
         self.if_name = if_name
@@ -68,7 +69,8 @@ class TcpDump(object):
 
         total_bytes = sum_bytes(packets)
 
-        self.output = {"protocol": self.protocol,
+        self.output = {"batch_id": self.batch_id,
+                       "protocol": self.protocol,
                        "file_size": os.path.getsize(self.filename),
                        "utc_start_time": self.utc_start_time,
                        "host_from": self.remote_hostname,
