@@ -59,7 +59,14 @@ def plot_speed_efficiency(df, filesize):
     rows = df.loc[df["File Size (bytes)"] == fs]
     x = rows["Bytes Total"]
     y = rows["Speed (bytes/s)"]
-    plt.plot(x, y, "o")
+    marker = ["o", "o", "*", "*"]
+    colors = ["k", "m", "m", "k"]
+    index = rows.index
+
+    for i in range(4):
+        j = index[i]
+        pname = rows["Protocol"][j]
+        plt.scatter(x[j], y[j], marker=marker[i], color=colors[i], s=150, label=pname)
 
     # Add a line to represent filesize
     ylim = plt.ylim()
@@ -68,7 +75,8 @@ def plot_speed_efficiency(df, filesize):
     plt.title("Speed vs Data Efficiency for %s Byte File" % fs, size=18)
     plt.ylabel("Speed (bytes/s)", size=16)
     plt.xlabel("Total Bytes Transferred", size=16)
-    plt.legend()
+    plt.legend(bbox_to_anchor=(1.18, 1), scatterpoints=1)
+    plt.ylim(ylim)
     plt.show()
 
 def get_dumps(protocols, n):
