@@ -90,13 +90,13 @@ def get_dict(line, remote_hostname, remote_ip):
     # Sometimes tcpdump spits out lines like
     # 19:10:04.114431 IP 128.199.53.7], length 0
     # This happens because the process is killed abruptly.
-    if len(elements) > 5:
+    try:
         # elements[2] is the host the packet was sent from
         direction = "down" if elements[2].startswith((remote_hostname, remote_ip)) else "up"
         return {"direction": direction,
                 "time": elements[0],
                 "length": int(elements[-1])}
-    else:
+    except:
         return None
 
 def get_ip_address(ifname):

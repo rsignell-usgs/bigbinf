@@ -18,6 +18,8 @@ def plot_packets(dump_batch):
     """
     Plots time on the x axis vs length on the y axis
     """
+    filesize = sizeof_fmt(dump_batch[0]["file_size"])
+
     # Convert all the times to an offset from 0
     xy = []
     for dump in dump_batch:
@@ -46,7 +48,7 @@ def plot_packets(dump_batch):
     fig.text(0.5, 0.04, "Time elapsed", ha='center', va='center', size=16)
     fig.text(0.04, 0.5, "Length of payload (bytes)", ha='center', va='center',
              rotation='vertical', size=16)
-    fig.suptitle("Individual Packets", size=18)
+    fig.suptitle("Individual Packets for %s Transfer" % filesize, size=18)
     axes[3].legend(bbox_to_anchor=(1, -0.1))
     fig.show()
 
@@ -72,7 +74,7 @@ def plot_speed_efficiency(df, filesize):
     ylim = plt.ylim()
     plt.plot([fs, fs], [ylim[0], ylim[1]], "r--", linewidth=3, label="filesize")
 
-    plt.title("Speed vs Data Efficiency for %s Byte File" % fs, size=18)
+    plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(fs), size=18)
     plt.ylabel("Speed (bytes/s)", size=16)
     plt.xlabel("Total Bytes Transferred", size=16)
     plt.legend(bbox_to_anchor=(1.18, 1), scatterpoints=1)
@@ -184,3 +186,16 @@ def get_time_elapsed(packets):
     t_min = datetime.strptime(min(p["time"] for p in packets), TIME_FORMAT)
     t_max = datetime.strptime(max(p["time"] for p in packets), TIME_FORMAT)
     return (t_max - t_min).total_seconds()
+
+
+def sizeof_fmt(num, use_kibibyte=True):
+    """
+    Converts 2540610608 -> 2.4 GiB
+    """
+    base, suffix = [(1000., 'B'), (1024., 'iB')][use_kibibyte]
+    for x in ['B'] + [i+suffix for i in "kMGTP"]:
+        if -base < num < base:
+            return "%3.1f %s" % (num, x)
+        num /= base
+    return "%3.1f %s" % (num, x)
+
