@@ -15,10 +15,11 @@ class Job:
 class ExtendedJsonEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Job):
-            return {'job':{
+            return {
                 'user': obj.user, 
                 'timestamp': obj.timestamp,
                 'status': obj.status,
+                'name': obj.image_name
                 }
-            }
+            
         return super(ExtendedJsonEncoder, self).default(obj)

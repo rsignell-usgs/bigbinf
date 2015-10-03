@@ -11,3 +11,5 @@ kubernetes_port = '8080'
 
 
 job_label = 'app=batch-job'
+
+num_worker_nodes = 1
