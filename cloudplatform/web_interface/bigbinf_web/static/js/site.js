@@ -3,12 +3,13 @@ var app = angular.module('bigbinf_webApp', ['ngRoute']);
 app.config(function($routeProvider) {
 	$routeProvider
 	.when('/', {
-		templateUrl: 'static/html/submitjob.html',
+		templateUrl: 'static/html/main.html',
 		controller: 'CsubmitJob'
 	})
 	.when('/about',{
 		templateUrl: 'static/html/about.html',
 	})
+	
 }); 
 
 app.directive('fileModel', ['$parse', function ($parse) {
@@ -45,7 +46,7 @@ app.service('fileUpload', ['$http', function ($http) {
 	}
 }]);
 
-app.controller('CsubmitJob', ['$scope', 'fileUpload', function ($scope, fileUpload){
+app.controller('CsubmitJob', ['$scope', 'fileUpload', function($scope, fileUpload){
 	
 	$scope.fileChanged = function(element){
 		$scope.jobfile = element.files[0];
@@ -58,3 +59,27 @@ app.controller('CsubmitJob', ['$scope', 'fileUpload', function ($scope, fileUplo
 		fileUpload.uploadFileToUrl(file, submitjobAPI);
 	};
 }]);
+
+
+
+app.controller('CjobQueue', function($scope, $http, $timeout){
+	var requestJobQueue = function(){
+		$http.get('schedule/queue')
+		.success(function(data){
+			$scope.queue = data;
+		});
+	};
+
+	var pollQueue = function(){
+		requestJobQueue();
+
+		$timeout(function(){
+			console.log('polled job queue');
+			pollQueue();
+		}, 5000);
+	};
+
+	requestJobQueue();
+	pollQueue();
+
+});

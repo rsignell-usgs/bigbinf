@@ -7,4 +7,4 @@ schedulingBP = Blueprint('scheduling', __name__)
 
 @schedulingBP.route('/queue', methods=['GET'])
 def get_schedule():
-	return jsonify({'queue': scheduling.get_schedule()})
+	return jsonify({'jobs': scheduling.get_schedule()})

@@ -1,0 +1,9 @@
+<div ng-controller='CjobQueue'>
+	<h1>Jobs in Queue</h1>
+	<ul>
+		<li ng-repeat='job in queue.jobs'>
+		{{job.name}} {{job.status}} {{job.timestamp}}
+		</li>
+	</ul>
+
+</div>
