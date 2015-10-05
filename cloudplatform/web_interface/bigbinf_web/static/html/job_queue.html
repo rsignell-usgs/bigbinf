@@ -1,9 +1,20 @@
 <div ng-controller='CjobQueue'>
 	<h1>Jobs in Queue</h1>
-	<ul>
-		<li ng-repeat='job in queue.jobs'>
-		{{job.name}} {{job.status}} {{job.timestamp}}
-		</li>
-	</ul>
+	<table id='jobqueue' class='table table-striped table-bordered'>
+		<thead>
+			<tr>
+				<th>Status</th>
+				<th>ID</th>
+				<th>Timestamp</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat='job in queue.jobs'>
+				<td>{{job.status}}</td>
+				<td>{{job.name}}</td>
+				<td>{{job.timestamp}}</td>
+			</tr>
+		</tbody>
+	</table>
 
 </div>

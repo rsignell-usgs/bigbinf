@@ -1,7 +1,12 @@
-h1 {
-	color: #64b0ff;
-}
-
 body {
 	background-color: #686A6C;
+}
+
+#main{
+	margin-left: 2em;
+}
+
+#jobqueue{
+	background-color: #cccccc;
+	width: 90%;
 }
