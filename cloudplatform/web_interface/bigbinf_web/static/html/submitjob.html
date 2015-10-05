@@ -1,4 +1,20 @@
-<div ng-controller='CsubmitJob'> 
+<div ng-controller='CsubmitJobFancy'>
+	<h1>Submit New Job</h1>
+	<form name="myForm">
+		<input type="file" ngf-select ng-model="File" accept="*" required>
+		  <i ng-show="myForm.file.$error.required">*required</i><br>
+		  <button ng-disabled="!myForm.$valid" 
+		  		  ng-click="uploadFile(File)">Submit</button>
+		  <span class="progress" ng-show="File.progress >= 0">
+			<div ng-bind="File.progress + '%'"></div>
+		  </span>
+		  <span ng-show="File.result">Upload Successful</span>
+		  <span class="err" ng-show="errorMsg">{{errorMsg}}</span>
+		<br>
+  </form>
+</div>
+
+<!--<div ng-controller='CsubmitJob'> 
 	<h1>Submit New Job</h1>
 	<form ng-submit='submitJobForm()'>
 		<input type=file file-model='jobfile'
@@ -6,4 +22,4 @@
 		/>
 		<input type=submit value=Upload>
 	</form>
-</div>	
+</div>	-->

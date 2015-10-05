@@ -1,4 +1,4 @@
-var app = angular.module('bigbinf_webApp', ['ngRoute']);
+var app = angular.module('bigbinf_webApp', ['ngRoute', 'ngFileUpload']);
 
 app.config(function($routeProvider) {
 	$routeProvider
@@ -11,6 +11,23 @@ app.config(function($routeProvider) {
 	})
 	
 }); 
+
+app.controller('CsubmitJobFancy', ['$scope', 'Upload', '$timeout', function ($scope, Upload, $timeout) {
+    $scope.uploadFile = function(file) {
+    Upload.upload({
+      url: '/submitjob',
+      data: {file: file},
+    })
+    .then(function (response) {
+        file.result = response.data;
+    }, function (err) {
+      if (response.status > 0)
+        $scope.errorMsg = response.status + ': ' + response.data;
+    }, function (evt) {
+      file.progress = parseInt(100.0 * evt.loaded / evt.total);
+    });
+    }
+}]);
 
 app.directive('fileModel', ['$parse', function ($parse) {
 	return {
