@@ -49,18 +49,21 @@ class BuildScheduler(Thread):
 
 	def run(self):
 		while True:
-			job = self.build_queue.get(block=True)
-			print('found a job to build')
-			success = self.build_image(job)
-			if success:
-				success = self.push_image(job)
-			if success:
-				self.build_queue.task_done()
-				job.status = 'ready'
-				print('build successful')
-				self.ready_queue.put(job)
+			try:
+				job = self.build_queue.get(block=True)
+				print('found a job to build')
+				success = self.build_image(job)
+				if success:
+					success = self.push_image(job)
+				if success:
+					self.build_queue.task_done()
+					job.status = 'ready'
+					print('build successful')
+					self.ready_queue.put(job)
 
-				print 'ready queue size:', self.ready_queue.qsize()
+					print 'ready queue size:', self.ready_queue.qsize()
+			except Exception as e:
+				print e
 
 
 class RunQueue(object):
@@ -131,8 +134,11 @@ class RunScheduler(Thread):
 
 	def run(self):
 		while True:
-			job = self.running_queue.new_job()
-			success = self.run_job(job)	
+			try:
+				job = self.running_queue.new_job()
+				success = self.run_job(job)	
+			except Exception as e:
+				print e
 			
 
 class JobWatcher(Thread):
@@ -144,17 +150,20 @@ class JobWatcher(Thread):
 			self.running_queue = running_queue
 
 	def run(self):
-		k8s_url = 'http://%s:%s' % (config.kubernetes_host, config.kubernetes_port)
-		stream = watch_pods(k8s_url, config.job_label)
-		for event in stream.iter_lines():
-			event = json.loads(event)
-			job_name = event['object']['metadata']['name']
-			job_state = event['object']['status']
-			#print json.dumps(job_state, indent=4)
+		try:
+			k8s_url = 'http://%s:%s' % (config.kubernetes_host, config.kubernetes_port)
+			stream = watch_pods(k8s_url, config.job_label)
+			for event in stream.iter_lines():
+				event = json.loads(event)
+				job_name = event['object']['metadata']['name']
+				job_state = event['object']['status']
+				#print json.dumps(job_state, indent=4)
 
-			if job_state['phase'] == 'Succeeded':
-				delete_pod(k8s_url, job_name)
-				self.running_queue.remove(job_name)
+				if job_state['phase'] == 'Succeeded':
+					delete_pod(k8s_url, job_name)
+					self.running_queue.remove(job_name)
+		except Exception as e:
+			print e
 
 		
 build_queue = Queue()
