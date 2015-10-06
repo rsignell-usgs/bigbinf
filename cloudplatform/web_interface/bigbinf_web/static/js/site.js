@@ -9,20 +9,43 @@ app.config(function($routeProvider) {
 	.when('/about',{
 		templateUrl: 'static/html/about.html',
 	})
+	.when('/regions',{
+		templateUrl: 'static/html/regions.html',
+		controller: 'Cregions'
+	})
 	
 }); 
 
+
+app.factory('Region', function ($http){
+	var region = 'default';
+
+	return {
+		region: region
+	};
+})
+
+app.controller('Ctitle', function ($scope, $http){
+	$http.get('region')
+		.success(function(data){
+			console.log(data);
+			$scope.region = data.region;
+		});
+});
+
 app.controller('CsubmitJobFancy', ['$scope', 'Upload', '$timeout', function ($scope, Upload, $timeout) {
     $scope.uploadFile = function(file) {
+    	console.log(file.name);
     Upload.upload({
       url: '/submitjob',
-      data: {file: file},
+      data: {file: file, resultspath: $scope.resultspath, datapath: $scope.datapath},
     })
     .then(function (response) {
         file.result = response.data;
     }, function (err) {
-      if (response.status > 0)
-        $scope.errorMsg = response.status + ': ' + response.data;
+    	console.log('error uploading');
+      if (err.status > 0)
+        $scope.errorMsg = err.status + ': ' + err.data;
     }, function (evt) {
       file.progress = parseInt(100.0 * evt.loaded / evt.total);
     });
@@ -81,7 +104,7 @@ app.controller('CsubmitJob', ['$scope', 'fileUpload', function($scope, fileUploa
 
 app.controller('CjobQueue', function($scope, $http, $timeout){
 	var requestJobQueue = function(){
-		$http.get('schedule/queue')
+		$http.get('queue')
 		.success(function(data){
 			$scope.queue = data;
 		});
@@ -99,4 +122,12 @@ app.controller('CjobQueue', function($scope, $http, $timeout){
 	requestJobQueue();
 	pollQueue();
 
+});
+
+
+app.controller('Cregions', function($scope, $http){
+	$http.get('regions')
+	.success(function(data){
+		$scope.regions = data.clouds;
+	});
 });

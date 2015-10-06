@@ -1,12 +1,37 @@
 body {
-	background-color: #686A6C;
+	background-color: #BABABA;
 }
 
 #main{
 	margin-left: 2em;
 }
 
+
 #jobqueue{
 	background-color: #cccccc;
 	width: 90%;
 }
+
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    opacity: 0;
+    cursor: inherit;
+    display: block;
+}
+
+#region-list li {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+}
+

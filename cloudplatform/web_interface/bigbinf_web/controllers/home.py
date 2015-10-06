@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify
 from werkzeug import secure_filename
 from bigbinf_web.lib.docker_remote import *
-from bigbinf_web import config
+from bigbinf_web.lib.discovery_service import *
+from bigbinf_web.config import config
 from bigbinf_web.scheduling import scheduling
 import tarfile
 import tempfile
@@ -20,6 +21,7 @@ def index():
 @homeBP.route('/submitjob', methods=['POST'])
 def submit_job():
 	file = request.files['file']
+	print request.form['resultspath']
 	if file:
 		try:
 			file.filename = secure_filename(file.filename)
@@ -44,3 +46,17 @@ def submit_job():
 			response = jsonify({'status': 'bad_file', 'supported_filetypes':[{'filetype': 'tar'}, {'filetype': 'tar.gz'}, {'filetype': 'tar.bz2'}]}), 400
 
 		return response
+
+
+@homeBP.route('/queue', methods=['GET'])
+def get_schedule():
+	return jsonify({'jobs': scheduling.get_schedule()})
+
+@homeBP.route('/region', methods=['GET'])
+def get_region():
+	return jsonify({'region': config.region})
+
+@homeBP.route('/regions', methods=['GET'])
+def get_regions():
+	hostUrl = 'http://%s:%s' % (config.discovery_service_host, config.discovery_service_port)
+	return get_clouds(hostUrl)

@@ -1,0 +1,10 @@
+<div ng-controller='Cregions'>
+	<h1>Regions </h1>
+	<h3>Current Region: {{region}}</h3>
+	<ul id='region-list'>
+		<li ng-repeat='region in regions'>
+		<a href='{{region.hostUrl}}/#/regions'>{{region.name}}</a>
+		</li>
+	</ul>
+
+</div>

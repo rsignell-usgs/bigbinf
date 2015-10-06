@@ -1,8 +1,7 @@
 config = {
 	'clouds': [
 		{
-			'host':'localhost',
-			'port': 5001,
+			'hostUrl':'http://localhost:5001/',
 			'name': 'UCT'
 		}
 	]
