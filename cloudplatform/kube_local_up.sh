@@ -16,8 +16,7 @@ echo "Starting master kube"
 # to allow docker in docker we have to allow privileged in kubernetes. This however requires to modify the manifest specified in --config below which is bundled with the image.
 # to get around this we modify the manifest and volume mount it to replace the bundled manifest.
 docker run --privileged --net=host -d -v /var/run/docker.sock:/var/run/docker.sock  \
--v `pwd`/manifests:/etc/kubernetes/manifests \
-gcr.io/google_containers/hyperkube:v1.0.1 /hyperkube kubelet --api-servers=http://localhost:8080 \
+bigbinf/k8s_hyperkube:v1.0.1 /hyperkube kubelet --api-servers=http://localhost:8080 \
 --v=2 --address=0.0.0.0 --allow-privileged=true --enable-server --hostname-override=127.0.0.1 --config=/etc/kubernetes/manifests
 
 echo "Starting service proxy"
