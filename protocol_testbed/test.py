@@ -47,10 +47,10 @@ def test(protocol, datestring, batch_id):
 
     protocol_name = protocol_obj.protocol
 
-    # Make sure the log directory exists
+    # Make sure the dump directory exists
     if not os.path.exists("packet_dumps"):
         os.makedirs("packet_dumps")
-
+    # Write dump file
     with open("packet_dumps/%s_%s_%s.dump" % (protocol_name, filename, datestring), "w") as f:
         json.dump(dump.output, f)
 

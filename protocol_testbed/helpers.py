@@ -14,15 +14,22 @@ TIME_FORMAT = "%H:%M:%S.%f"
 
 PLOT_TIME_FORMAT = "%M:%S"
 
-def plot_packets(dump_batch):
+def plot_packets(batch_id):
     """
     Plots time on the x axis vs length on the y axis
     """
-    filesize = sizeof_fmt(dump_batch[0]["file_size"])
+    dump_batch_names = get_fnames_by_id(batch_id)
+    dump_protocols = []
+    filesize = 0
 
     # Convert all the times to an offset from 0
     xy = []
-    for dump in dump_batch:
+    for name in dump_batch_names:
+        with open("packet_dumps/%s" % name) as f:
+            dump = json.load(f)
+
+        dump_protocols.append(dump["protocol"])
+        filesize = sizeof_fmt(dump["file_size"])
         x = [datetime.strptime(l["time"], TIME_FORMAT) for l in dump["packets"]]
         t0 = min(x)
         dt = timedelta(hours=t0.hour, minutes=t0.minute, seconds=t0.second,
@@ -37,7 +44,7 @@ def plot_packets(dump_batch):
     for i in range(4):
         axes[i].plot(xy[i][0], xy[i][1], ".")
         axes[i].xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
-        axes[i].set_title(dump_batch[i]["protocol"], size=16)
+        axes[i].set_title(dump_protocols[i], size=16)
         axes[i].yaxis.set_major_locator(plt.MaxNLocator(max_yticks))
 
         # Add a line to show where the transfer stopped
@@ -57,50 +64,51 @@ def plot_speed_efficiency(df, filesize):
     Given a pandas Dataframe, plots each protocol's speed
     vs it's data efficiency
     """
-    fs = filesize
-    rows = df.loc[df["File Size (bytes)"] == fs]
+    rows = df.loc[int(filesize)]
+
     x = rows["Bytes Total"]
     y = rows["Speed (bytes/s)"]
     marker = ["o", "o", "*", "*"]
     colors = ["k", "m", "m", "k"]
-    index = rows.index
 
     for i in range(4):
-        j = index[i]
-        pname = rows["Protocol"][j]
-        plt.scatter(x[j], y[j], marker=marker[i], color=colors[i], s=150, label=pname)
+        pname = rows.index[i]
+        plt.scatter(x[i], y[i], marker=marker[i], color=colors[i], s=150, label=pname)
 
     # Add a line to represent filesize
     ylim = plt.ylim()
-    plt.plot([fs, fs], [ylim[0], ylim[1]], "r--", linewidth=3, label="filesize")
+    plt.plot([filesize, filesize], [ylim[0], ylim[1]], "r--", linewidth=3, label="filesize")
 
-    plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(fs), size=18)
+    plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(filesize), size=18)
     plt.ylabel("Speed (bytes/s)", size=16)
     plt.xlabel("Total Bytes Transferred", size=16)
     plt.legend(bbox_to_anchor=(1.18, 1), scatterpoints=1)
     plt.ylim(ylim)
     plt.show()
 
-def get_dumps(protocols, n):
+def get_dumps(fnames):
     """
     Returns dumps in json
     """
-    fnames = get_dump_fnames(protocols, n)
     dumps = []
 
     for fname in fnames:
+        # size = os.stat("packet_dumps/%s" % fname).st_size
+        # print "Reading in %s (%s)" % (fname, sizeof_fmt(size))
         with open("packet_dumps/%s" % fname) as f:
-            dumps.append(json.load(f))
+            raw_dump = json.load(f)
+            del raw_dump["packets"]
+            dumps.append(raw_dump)
 
     return dumps
 
-def display_dumps(dumps):
+def organize_dumps(dumps):
     """
     Organizes a set of dumps into a pandas DataFrame
     """
     # Set up DataFrame with correct columns
     df = pd.DataFrame(dumps)
-    df.drop(["host_from", "host_to", "packets"], axis=1, inplace=True)
+    df.drop(["host_from", "host_to"], axis=1, inplace=True)
 
     # Calculate new columns and round
     df["time"] = np.round(df["time"], 2)
@@ -110,7 +118,7 @@ def display_dumps(dumps):
     # Remove milliseconds from start time
     t = pd.to_datetime(df["utc_start_time"])
     t = [d.strftime("%Y-%m-%d %H:%M:%S") for d in t]
-    df["utc_start_time"] = t
+    df["utc_start_time"] = pd.to_datetime(t)
 
     # Group batches by batch_id
     ids = enumerate(set(df["batch_id"]))
@@ -144,6 +152,19 @@ def get_dump_fnames(protocols, n):
         for p in PROC_ARGS:
             acc += [d for d in files if d.startswith(p)][:n]
         return acc
+
+def get_fnames_by_id(batch_id):
+    """
+    Fetches the filenames for a specific batch_id
+    """
+    names = []
+
+    for fname in os.listdir("packet_dumps"):
+        dump = get_dumps([fname])[0]
+        if dump["batch_id"] == batch_id:
+            names.append(fname)
+
+    return names
 
 def aggregate(l):
     """
