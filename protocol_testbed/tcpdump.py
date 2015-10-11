@@ -64,7 +64,13 @@ class TcpDump(object):
 
         # get rid of blank lines
         stdout = [line for line in stdout if line]
-        packets = [get_dict(line, self.remote_hostname, self.remote_ip) for line in stdout]
+        # Sometimes these lists can be really big,
+        # so a biffered approach is needed instead
+        # of a simple list comprehension
+        packets = []
+        while stdout:
+            packets.append(get_dict(stdout.pop(), self.remote_hostname, self.remote_ip))
+
         packets = [p for p in packets if p]
 
         total_bytes = sum_bytes(packets)
