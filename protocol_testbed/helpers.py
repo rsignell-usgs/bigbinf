@@ -1,90 +1,32 @@
 """
-Common functions used for analysis
+Common helper functions used for analysis
 """
-from datetime import datetime, timedelta
 import json
 import numpy as np
 import os
 import pandas as pd
+from datetime import datetime
 
-from matplotlib import pyplot as plt, dates
 from protocols import PROC_ARGS
 
 TIME_FORMAT = "%H:%M:%S.%f"
 
-PLOT_TIME_FORMAT = "%M:%S"
-
-def plot_packets(batch_id):
+def calc_speed_ratios(df):
     """
-    Plots time on the x axis vs length on the y axis
+    Takes a dataframe grouped by filesize
+    and then protocol. Returns their individual ratios
     """
-    dump_batch_names = get_fnames_by_id(batch_id)
-    dump_protocols = []
-    filesize = 0
+    sizes = df.index.levels[0]
+    protocols = df.index.levels[1]
+    ans = pd.DataFrame(index=protocols)
 
-    # Convert all the times to an offset from 0
-    xy = []
-    for name in dump_batch_names:
-        with open("packet_dumps/%s" % name) as f:
-            dump = json.load(f)
+    for size in sizes:
+        sel = df.loc[size]
+        smallest = float(min(sel["Speed (bytes/s)"]))
+        biggest = float(max(sel["Speed (bytes/s)"]))
+        ans[str(size)] = (sel["Speed (bytes/s)"]-smallest)/(biggest-smallest)
 
-        dump_protocols.append(dump["protocol"])
-        filesize = sizeof_fmt(dump["file_size"])
-        x = [datetime.strptime(l["time"], TIME_FORMAT) for l in dump["packets"]]
-        t0 = min(x)
-        dt = timedelta(hours=t0.hour, minutes=t0.minute, seconds=t0.second,
-                       microseconds=t0.microsecond)
-        x = [t-dt for t in x]
-        y = [l["length"] for l in dump["packets"]]
-        xy.append((x, y))
-
-    fig, axes = plt.subplots(4, sharex="col")
-    max_yticks = 4
-
-    for i in range(4):
-        axes[i].plot(xy[i][0], xy[i][1], ".")
-        axes[i].xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
-        axes[i].set_title(dump_protocols[i], size=16)
-        axes[i].yaxis.set_major_locator(plt.MaxNLocator(max_yticks))
-
-        # Add a line to show where the transfer stopped
-        ylim = axes[i].get_ylim()
-        end = max(xy[i][0])
-        axes[i].plot([end, end], [ylim[0], ylim[1]], "g--", linewidth=1, label="final packet")
-
-    fig.text(0.5, 0.04, "Time elapsed", ha='center', va='center', size=16)
-    fig.text(0.04, 0.5, "Length of payload (bytes)", ha='center', va='center',
-             rotation='vertical', size=16)
-    fig.suptitle("Individual Packets for %s Transfer" % filesize, size=18)
-    axes[3].legend(bbox_to_anchor=(1, -0.1))
-    fig.show()
-
-def plot_speed_efficiency(df, filesize):
-    """
-    Given a pandas Dataframe, plots each protocol's speed
-    vs it's data efficiency
-    """
-    rows = df.loc[int(filesize)]
-
-    x = rows["Bytes Total"]
-    y = rows["Speed (bytes/s)"]
-    marker = ["o", "o", "*", "*"]
-    colors = ["k", "m", "m", "k"]
-
-    for i in range(4):
-        pname = rows.index[i]
-        plt.scatter(x[i], y[i], marker=marker[i], color=colors[i], s=150, label=pname)
-
-    # Add a line to represent filesize
-    ylim = plt.ylim()
-    plt.plot([filesize, filesize], [ylim[0], ylim[1]], "r--", linewidth=3, label="filesize")
-
-    plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(filesize), size=18)
-    plt.ylabel("Speed (bytes/s)", size=16)
-    plt.xlabel("Total Bytes Transferred", size=16)
-    plt.legend(bbox_to_anchor=(1.18, 1), scatterpoints=1)
-    plt.ylim(ylim)
-    plt.show()
+    return ans.transpose()
 
 def get_dumps(fnames):
     """
