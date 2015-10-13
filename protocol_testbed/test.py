@@ -47,6 +47,11 @@ def test(protocol, datestring, batch_id):
 
     protocol_name = protocol_obj.protocol
 
+    # Remove packets array if not needed
+    if not args.store_packets:
+        del dump.output["packets"]
+    dump.output["stored_packets"] = args.store_packets
+
     # Make sure the dump directory exists
     if not os.path.exists("packet_dumps"):
         os.makedirs("packet_dumps")
@@ -66,6 +71,8 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--local-path", metavar="PATH", required=True,
                         help="The path where the file shold be copied to. \
                               Please use full paths with a trailing slash.")
+    parser.add_argument("--store-packets", dest="store_packets", action="store_true",
+                        default=False)
     args = parser.parse_args()
 
     sys.exit(main())
