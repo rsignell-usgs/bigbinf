@@ -11,12 +11,36 @@ pod = {
 	"containers":[
 		{
 			"name": "",
-			"image": ""
+			"image": "",
+			"volumeMounts":[
+				{
+					"name": "rawdata",
+					"mountPath":""
+				},
+				{
+					"name": "results",
+					"mountPath": ""
+				}
+			]
 			
 
 		}
  	],
-	"RestartPolicy": "Never"
+	"RestartPolicy": "Never",
+	"volumes": [
+		{
+			"name": "rawdata",
+			"hostPath":{
+				"path": ""
+			}
+		},
+		{
+			"name": "results",
+			"hostPath": {
+				"path": ""
+			}
+		}
+	]
 
  }
 }

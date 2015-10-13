@@ -124,10 +124,32 @@ class RunScheduler(Thread):
 		registry_url = '%s:%s' % (config.node_registry_host, config.registry_port)
 		image_name = '%s/%s' % (registry_url, job.image_name)
 		pod_config = copy.deepcopy(job_config.pod)
+
+
 		pod_config['metadata']['name'] = job.image_name
 		pod_config['spec']['containers'][0]['name'] = job.image_name
 		pod_config['spec']['containers'][0]['image'] = image_name
-		#print(pod_config)
+		pod_config['spec']['containers'][0]['volumeMounts'][0]['mountPath'] = job.datapath
+		pod_config['spec']['containers'][0]['volumeMounts'][1]['mountPath'] = job.resultspath
+		pod_config['spec']['volumes'][0]['hostPath']['path'] = config.rawdata_hostpath
+		pod_config['spec']['volumes'][1]['hostPath']['path'] = config.results_hostpath
+
+
+		
+
+		if job.datapath is None:
+			if job.resultspath is None:
+				del pod_config['spec']['containers'][0]['volumeMounts']
+				del pod_config['spec']['volumes']
+			else:
+				del pod_config['spec']['containers'][0]['volumeMounts'][0]
+				del pod_config['spec']['volumes'][0]
+		elif job.resultspath is None:
+			del pod_config['spec']['containers'][0]['volumeMounts'][1]
+			del pod_config['spec']['volumes'][1]
+
+
+		print pod_config
 		pod_config = json.dumps(pod_config)
 		create_pod(k8s_url, pod_config)
 		return True
@@ -137,6 +159,7 @@ class RunScheduler(Thread):
 			try:
 				job = self.running_queue.new_job()
 				success = self.run_job(job)	
+				print 'running job'
 			except Exception as e:
 				print e
 			
@@ -171,12 +194,12 @@ ready_queue = Queue()
 running_queue = RunQueue(config.num_worker_nodes, ready_queue)
 
 
-def add_job(file):
+def add_job(file, datapath, resultspath):
 	builder_url = '%s:%s' % (config.builder_host, config.builder_port)
 	registry_url = '%s:%s' % (config.registry_host, config.registry_port)
 	image_name = str(uuid4())
 	timestamp = datetime.now()
-	job = Job(file, builder_url, registry_url, image_name, timestamp)
+	job = Job(file, builder_url, registry_url, image_name, timestamp, datapath, resultspath)
 	job.status = 'build'
 	build_queue.put(job)
 

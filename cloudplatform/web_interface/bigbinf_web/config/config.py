@@ -17,3 +17,6 @@ job_label = 'app=batch-job'
 num_worker_nodes = 1
 
 region = 'UCT'
+
+rawdata_hostpath = '/mnt/rb1'
+results_hostpath = '/mnt/rb2'

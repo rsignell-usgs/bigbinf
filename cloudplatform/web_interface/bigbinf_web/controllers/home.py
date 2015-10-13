@@ -8,6 +8,7 @@ import tarfile
 import tempfile
 from tarfile import TarError
 import cStringIO
+import os
 
 homeBP = Blueprint('home',__name__)
 
@@ -21,7 +22,13 @@ def index():
 @homeBP.route('/submitjob', methods=['POST'])
 def submit_job():
 	file = request.files['file']
-	print request.form['resultspath']
+	resultspath = request.form.get('resultspath', None)
+	datapath = request.form.get('datapath', None)
+	if resultspath is not None and not os.path.isabs(resultspath):
+		resultspath = None
+	if datapath is not None and not os.path.isabs(datapath):
+		datapath = None
+	print 'paths:', resultspath, datapath
 	if file:
 		try:
 			file.filename = secure_filename(file.filename)
@@ -39,7 +46,7 @@ def submit_job():
 			temp.seek(0)
 			file = temp
 
-			scheduling.add_job(file)
+			scheduling.add_job(file, datapath, resultspath)
 			response = jsonify({'status': 'build_queue'})
 			
 		except TarError as e:
