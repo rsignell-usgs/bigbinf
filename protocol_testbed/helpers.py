@@ -28,6 +28,20 @@ def calc_speed_ratios(df):
 
     return ans.transpose()
 
+def calc_data_per_filesize(df):
+    """
+    Takes a dataframe grouped by filesize and then protocol,
+    returns a dataframe with their respective ratios
+    """
+    sizes = df.index.levels[0]
+    protocols = df.index.levels[1]
+    ans = pd.DataFrame(index=protocols)
+
+    for size in sizes:
+        ans[str(size)] = df.loc[size]["Ratio (%)"]
+
+    return ans.transpose()
+
 def get_dumps(fnames):
     """
     Returns dumps in json
