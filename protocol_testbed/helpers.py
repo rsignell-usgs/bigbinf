@@ -53,7 +53,8 @@ def get_dumps(fnames):
         # print "Reading in %s (%s)" % (fname, sizeof_fmt(size))
         with open("packet_dumps/%s" % fname) as f:
             raw_dump = json.load(f)
-            del raw_dump["packets"]
+            if raw_dump["stored_packets"]:
+                del raw_dump["packets"]
             dumps.append(raw_dump)
 
     return dumps
@@ -65,6 +66,12 @@ def organize_dumps(dumps):
     # Set up DataFrame with correct columns
     df = pd.DataFrame(dumps)
     df.drop(["host_from", "host_to"], axis=1, inplace=True)
+
+    # Make sure that there's a stored_packets column
+    # This is for backwards compatability with dumps
+    # that were collected before the value existed
+    if not "stored_packets" in df.columns:
+        df["stored_packets"] = True
 
     # Calculate new columns and round
     df["time"] = np.round(df["time"], 2)
@@ -82,10 +89,11 @@ def organize_dumps(dumps):
     df["batch_id"] = [ids[x] for x in df["batch_id"]]
 
     # Reorder and rename
-    df = df[["protocol", "batch_id", "utc_start_time", "file_size", "bytes_down",
+    df = df[["protocol", "batch_id", "stored_packets", "utc_start_time", "file_size", "bytes_down",
              "bytes_up", "bytes_total", "ratio", "time", "speed"]]
-    df.columns = ["Protocol", "Batch ID", "Start Time", "File Size (bytes)", "Bytes Down",
-                  "Bytes Up", "Bytes Total", "Ratio (%)", "Time (s)", "Speed (bytes/s)"]
+    df.columns = ["Protocol", "Batch ID", "Stored Packets", "Start Time",
+                  "File Size (bytes)", "Bytes Down", "Bytes Up", "Bytes Total",
+                  "Ratio (%)", "Time (s)", "Speed (bytes/s)"]
 
     return df, ids
 

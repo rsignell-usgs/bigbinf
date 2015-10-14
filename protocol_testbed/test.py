@@ -47,6 +47,10 @@ def test(protocol, datestring, batch_id):
 
     protocol_name = protocol_obj.protocol
 
+    # Abort if no packets were captured
+    if not dump.output:
+        return
+
     # Remove packets array if not needed
     if not args.store_packets:
         del dump.output["packets"]

@@ -64,6 +64,10 @@ class TcpDump(object):
 
         # get rid of blank lines
         stdout = [line for line in stdout if line]
+        # If we don't have any packets, abort
+        if not stdout:
+            self.output = None
+            return
         # Sometimes these lists can be really big,
         # so a biffered approach is needed instead
         # of a simple list comprehension

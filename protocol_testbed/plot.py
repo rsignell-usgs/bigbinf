@@ -20,6 +20,8 @@ def plot_packets(batch_id):
     Plots time on the x axis vs length on the y axis
     """
     dump_batch_names = get_fnames_by_id(batch_id)
+
+
     dump_protocols = []
     filesize = 0
 
@@ -28,6 +30,11 @@ def plot_packets(batch_id):
     for name in sorted(dump_batch_names):
         with open("packet_dumps/%s" % name) as f:
             dump = json.load(f)
+
+        # If any of the dumps don't have a packets array, abort the whole dump
+        if not dump["stored_packets"]:
+            print "Dump %s was not captured with --store-packets" % name
+            return
 
         dump_protocols.append(dump["protocol"])
         filesize = sizeof_fmt(dump["file_size"])
@@ -98,8 +105,10 @@ def plot_speed_per_filesize(df, ratio=False, ignore_small=True):
     Takes an aggregated dataframe and plots
     speed as a function of filesize
     """
-    if ignore_small: # Ignore the 6 byte file
-        df = df[df["File Size (bytes)"] > 1000]
+    
+    if ignore_small:
+        smallest = min(df["File Size (bytes)"])
+        df = df[df["File Size (bytes)"] != smallest]
 
     agg = df.groupby(["File Size (bytes)", "Protocol"]).aggregate(np.mean)
     agg_inverse = df.groupby(["Protocol", "File Size (bytes)"]).aggregate(np.mean)
@@ -142,9 +151,9 @@ def plot_data_per_filesize(df, ignore_small=True):
 
     size_df = calc_data_per_filesize(agg)
 
-    if ignore_small: # Ignore the 6 byte file
+    if ignore_small:
         sizes = sizes[1:]
-        size_df = size_df[[int(x) > 1000 for x in size_df.index]]
+        size_df = size_df[1:]
 
     for i, p in enumerate(protocols):
         plt.plot(sizes, size_df[p], marker=MARKERS[i], color=COLORS[i], label=p, linewidth=2, ms=12)
@@ -158,5 +167,4 @@ def plot_data_per_filesize(df, ignore_small=True):
     plt.ylabel("Ratio of Filesize (%)", size=20)
     plt.legend(bbox_to_anchor=(1.2, 1), prop={"size":"16"})
     plt.show()
-
 
