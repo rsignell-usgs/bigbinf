@@ -16,7 +16,9 @@ job_label = 'app=batch-job'
 
 num_worker_nodes = 1
 
-region = 'UCT'
+
+region = 'SANBI1'
 
 rawdata_hostpath = '/mnt/rbd1'
 results_hostpath = '/mnt/rbd2'
+
