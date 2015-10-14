@@ -18,5 +18,5 @@ num_worker_nodes = 1
 
 region = 'UCT'
 
-rawdata_hostpath = '/mnt/rb1'
-results_hostpath = '/mnt/rb2'
+rawdata_hostpath = '/mnt/rbd1'
+results_hostpath = '/mnt/rbd2'

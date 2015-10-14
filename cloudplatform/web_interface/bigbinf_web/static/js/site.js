@@ -110,6 +110,7 @@ app.controller('CjobQueue', function($scope, $http, $timeout){
 		});
 	};
 
+
 	var pollQueue = function(){
 		requestJobQueue();
 
@@ -119,8 +120,17 @@ app.controller('CjobQueue', function($scope, $http, $timeout){
 		}, 5000);
 	};
 
+	$scope.deleteJob = function(jobname){
+		$http.delete('deletejob', {params:{jobname:jobname}})
+		.success(function(data){
+			requestJobQueue();
+		});
+	}
+
 	requestJobQueue();
 	pollQueue();
+
+
 
 });
 

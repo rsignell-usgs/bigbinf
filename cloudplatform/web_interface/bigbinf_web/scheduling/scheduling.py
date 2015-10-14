@@ -11,13 +11,15 @@ from collections import deque
 import time
 import json
 import copy
+import os
 
 
 class BuildScheduler(Thread):
 	"""Schedules dockerfiles to be built"""
-	def __init__(self, build_queue, ready_queue):
+	def __init__(self, build_queue, building_queue, ready_queue):
 		super(BuildScheduler, self).__init__(group=None, target=None, name=None, verbose=None)
 		self.build_queue = build_queue
+		self.building_queue = building_queue
 		self.ready_queue = ready_queue
 
 	def build_image(self, job):
@@ -51,12 +53,16 @@ class BuildScheduler(Thread):
 		while True:
 			try:
 				job = self.build_queue.get(block=True)
+				self.build_queue.task_done()
+				self.building_queue.put(job)
+				job.status = 'building'
 				print('found a job to build')
 				success = self.build_image(job)
 				if success:
 					success = self.push_image(job)
 				if success:
-					self.build_queue.task_done()
+					self.building_queue.get()
+					self.building_queue.task_done()
 					job.status = 'ready'
 					print('build successful')
 					self.ready_queue.put(job)
@@ -88,9 +94,14 @@ class RunQueue(object):
 		with self.mutex:
 			if self.queue.get(job_name, None):
 				print 'removing job:', job_name
+				job = self.queue[job_name]
 				del self.queue[job_name]
+				print 'removing from running queue', job.image_name
 				self.size -= 1
 				self.not_full.notify()
+				return job
+			else:
+				return None
 
 	def new_job(self):
 		""""
@@ -125,6 +136,7 @@ class RunScheduler(Thread):
 		image_name = '%s/%s' % (registry_url, job.image_name)
 		pod_config = copy.deepcopy(job_config.pod)
 
+		results_hostpath = 	os.path.join(config.results_hostpath, job.image_name)		
 
 		pod_config['metadata']['name'] = job.image_name
 		pod_config['spec']['containers'][0]['name'] = job.image_name
@@ -132,10 +144,15 @@ class RunScheduler(Thread):
 		pod_config['spec']['containers'][0]['volumeMounts'][0]['mountPath'] = job.datapath
 		pod_config['spec']['containers'][0]['volumeMounts'][1]['mountPath'] = job.resultspath
 		pod_config['spec']['volumes'][0]['hostPath']['path'] = config.rawdata_hostpath
-		pod_config['spec']['volumes'][1]['hostPath']['path'] = config.results_hostpath
+		pod_config['spec']['volumes'][1]['hostPath']['path'] = results_hostpath
+
+		try:
+			if not os.path.exists(results_hostpath):
+				os.makedirs(results_hostpath)
+		except Exception as e:
+			print e
 
 
-		
 
 		if job.datapath is None:
 			if job.resultspath is None:
@@ -164,13 +181,43 @@ class RunScheduler(Thread):
 				print e
 			
 
+class CompletedQueue(object):
+	def __init__(self):
+		self.size = 0
+		self.queue = {}
+		self.mutex = Lock()
+
+
+	def list_queue(self):
+		with self.mutex:
+			return self.queue.values()
+
+	def put(self, job):
+		with self.mutex:
+			self.queue[job.image_name] = job
+
+	def remove(self, job_name):
+		with self.mutex:
+			if self.queue.get(job_name, None):
+				print 'removing job:', job_name
+				job = self.queue[job_name]
+				del self.queue[job_name]
+				self.size -= 1
+
+	def get(self, job_name):
+		with self.mutex:
+			job = self.queue.get(job_name, None)
+			return job
+
+
 class JobWatcher(Thread):
 	"""This class watches a kubernetes stream to see when jobs complete 
 	and removes completed jobs from the running queue"""
 
-	def __init__(self, running_queue):
+	def __init__(self, running_queue, completed_queue):
 			super(JobWatcher, self).__init__(group=None, target=None, name=None, verbose=None)
 			self.running_queue = running_queue
+			self.completed_queue = completed_queue
 
 	def run(self):
 		try:
@@ -184,14 +231,19 @@ class JobWatcher(Thread):
 
 				if job_state['phase'] == 'Succeeded':
 					delete_pod(k8s_url, job_name)
-					self.running_queue.remove(job_name)
+					job = self.running_queue.remove(job_name)
+					if job:
+						job.status = 'completed'
+						completed_queue.put(job)
 		except Exception as e:
 			print e
 
 		
 build_queue = Queue()
+building_queue = Queue()
 ready_queue = Queue()
 running_queue = RunQueue(config.num_worker_nodes, ready_queue)
+completed_queue = CompletedQueue()
 
 
 def add_job(file, datapath, resultspath):
@@ -200,20 +252,27 @@ def add_job(file, datapath, resultspath):
 	image_name = str(uuid4())
 	timestamp = datetime.now()
 	job = Job(file, builder_url, registry_url, image_name, timestamp, datapath, resultspath)
-	job.status = 'build'
+	job.status = 'waiting to build'
 	build_queue.put(job)
 
 	print('added job to build queue')
 
 
+def delete_job(job_name):
+	completed_queue.remove(job_name)
+
+
 def get_schedule():
 	schedule =  list(build_queue.queue)
+	schedule.extend(list(building_queue.queue))
 	schedule.extend(list(ready_queue.queue))
 	schedule.extend(running_queue.list_queue())
+	schedule.extend(completed_queue.list_queue())
+
 
 	return schedule
 
-build_scheduler = BuildScheduler(build_queue, ready_queue)
+build_scheduler = BuildScheduler(build_queue, building_queue, ready_queue)
 build_scheduler.daemon = True
 build_scheduler.start()
 
@@ -221,6 +280,6 @@ run_scheduler = RunScheduler(ready_queue, running_queue)
 run_scheduler.daemon = True
 run_scheduler.start()
 
-job_watcher = JobWatcher(running_queue)
+job_watcher = JobWatcher(running_queue, completed_queue)
 job_watcher.daemon = True
 job_watcher.start()

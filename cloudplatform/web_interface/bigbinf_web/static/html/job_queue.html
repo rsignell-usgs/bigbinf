@@ -6,6 +6,9 @@
 				<th>Status</th>
 				<th>ID</th>
 				<th>Timestamp</th>
+				<th>Results</th>
+				<th></th>
+
 			</tr>
 		</thead>
 		<tbody>
@@ -13,6 +16,10 @@
 				<td>{{job.status}}</td>
 				<td>{{job.name}}</td>
 				<td>{{job.timestamp}}</td>
+				<td>
+				<a ng-if='job.status==="completed"' ng-click='deleteJob(job.name)'>remove</a>
+				</td>
+
 			</tr>
 		</tbody>
 	</table>

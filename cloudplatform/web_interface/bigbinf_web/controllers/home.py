@@ -67,3 +67,14 @@ def get_region():
 def get_regions():
 	hostUrl = 'http://%s:%s' % (config.discovery_service_host, config.discovery_service_port)
 	return get_clouds(hostUrl)
+
+@homeBP.route('/deletejob', methods=['DELETE'])
+def delete_job():
+	print 'delete job'
+	job_name = request.args.get('jobname', None)
+	if job_name:
+		scheduling.delete_job(job_name)
+		response = jsonify({'status': 'success'}), 200
+	else:
+		response = jsonify({'status': 'failed'}), 400
+	return response
