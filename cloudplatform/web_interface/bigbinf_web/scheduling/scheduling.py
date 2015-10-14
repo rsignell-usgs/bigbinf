@@ -12,6 +12,8 @@ import time
 import json
 import copy
 import os
+import tarfile
+
 
 
 class BuildScheduler(Thread):
@@ -181,7 +183,7 @@ class RunScheduler(Thread):
 				print e
 			
 
-class CompletedQueue(object):
+class ListQueue(object):
 	def __init__(self):
 		self.size = 0
 		self.queue = {}
@@ -214,10 +216,19 @@ class JobWatcher(Thread):
 	"""This class watches a kubernetes stream to see when jobs complete 
 	and removes completed jobs from the running queue"""
 
-	def __init__(self, running_queue, completed_queue):
+	def __init__(self, running_queue, completed_queue, tar_queue):
 			super(JobWatcher, self).__init__(group=None, target=None, name=None, verbose=None)
 			self.running_queue = running_queue
 			self.completed_queue = completed_queue
+			self.tar_queue = tar_queue
+
+	def has_results(self, job):
+		if not job.resultspath:
+			return False
+		results_hostpath = 	os.path.join(config.results_hostpath, job.image_name)
+		if not os.listdir(results_hostpath): 
+			return False		
+		return True
 
 	def run(self):
 		try:
@@ -233,17 +244,61 @@ class JobWatcher(Thread):
 					delete_pod(k8s_url, job_name)
 					job = self.running_queue.remove(job_name)
 					if job:
-						job.status = 'completed'
-						completed_queue.put(job)
+						if self.has_results(job):
+							job.status = 'tar queue'
+							self.tar_queue.put(job)
+						else:
+							job.status = 'completed'
+							self.completed_queue.put(job)
 		except Exception as e:
 			print e
 
-		
+
+class TarScheduler(Thread):
+	"""Schedules job results to be bundled into a tar file"""
+	def __init__(self, tar_queue, tarring_queue, results_queue):
+		super(TarScheduler, self).__init__(group=None, target=None, name=None, verbose=None)
+		self.tar_queue = tar_queue
+		self.tarring_queue = tarring_queue
+		self.results_queue = results_queue
+
+
+	def tar(self, job):
+		try:
+			results_hostpath = os.path.join(config.results_hostpath, job.image_name)
+			tar_file_name = '%s.tar.gz' % (job.image_name)
+			tar_file_path = os.path.join(config.results_hostpath, tar_file_name)
+			with tarfile.open(tar_file_path, "w:gz") as tar:
+				tar.add(results_hostpath, arcname='results')
+			return True
+		except Exception as e:
+			print e
+			return False
+
+	def run(self):
+		while True:
+			try:
+				job = self.tar_queue.get(block=True)
+				self.tar_queue.task_done()
+				job.status = 'tarring'
+				self.tarring_queue.put(job)
+				self.tar(job)
+				self.tarring_queue.get()
+				self.tarring_queue.task_done()
+				job.status = 'results ready'
+				self.results_queue.put(job)
+			except Exception as e:
+				print e
+
+
 build_queue = Queue()
 building_queue = Queue()
 ready_queue = Queue()
 running_queue = RunQueue(config.num_worker_nodes, ready_queue)
-completed_queue = CompletedQueue()
+completed_queue = ListQueue()
+tar_queue = Queue()
+tarring_queue = Queue()
+results_queue = ListQueue()
 
 
 def add_job(file, datapath, resultspath):
@@ -260,6 +315,7 @@ def add_job(file, datapath, resultspath):
 
 def delete_job(job_name):
 	completed_queue.remove(job_name)
+	results_queue.remove(job_name)
 
 
 def get_schedule():
@@ -268,9 +324,14 @@ def get_schedule():
 	schedule.extend(list(ready_queue.queue))
 	schedule.extend(running_queue.list_queue())
 	schedule.extend(completed_queue.list_queue())
+	schedule.extend(list(tar_queue.queue))
+	schedule.extend(list(tarring_queue.queue))
+	schedule.extend(results_queue.list_queue())
 
 
 	return schedule
+
+
 
 build_scheduler = BuildScheduler(build_queue, building_queue, ready_queue)
 build_scheduler.daemon = True
@@ -280,6 +341,10 @@ run_scheduler = RunScheduler(ready_queue, running_queue)
 run_scheduler.daemon = True
 run_scheduler.start()
 
-job_watcher = JobWatcher(running_queue, completed_queue)
+job_watcher = JobWatcher(running_queue, completed_queue, tar_queue)
 job_watcher.daemon = True
 job_watcher.start()
+
+tar_scheduler = TarScheduler(tar_queue, tarring_queue, results_queue)
+tar_scheduler.daemon = True
+tar_scheduler.start()

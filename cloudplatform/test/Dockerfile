@@ -1,3 +1,3 @@
-FROM scratch
+FROM ubuntu:14.04
 COPY hello /
-CMD ["/hello"]
+CMD ["touch", "/results/test.txt"]

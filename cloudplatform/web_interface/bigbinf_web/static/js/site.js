@@ -127,6 +127,16 @@ app.controller('CjobQueue', function($scope, $http, $timeout){
 		});
 	}
 
+	$scope.getResults = function(jobname){
+		$http.get('results', {params:{jobname:jobname}})
+		.success(function(data){
+			console.log(data);
+		});
+	}
+
+
+
+
 	requestJobQueue();
 	pollQueue();
 

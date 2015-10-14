@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, send_from_directory
 from werkzeug import secure_filename
 from bigbinf_web.lib.docker_remote import *
 from bigbinf_web.lib.discovery_service import *
@@ -59,14 +59,17 @@ def submit_job():
 def get_schedule():
 	return jsonify({'jobs': scheduling.get_schedule()})
 
+
 @homeBP.route('/region', methods=['GET'])
 def get_region():
 	return jsonify({'region': config.region})
+
 
 @homeBP.route('/regions', methods=['GET'])
 def get_regions():
 	hostUrl = 'http://%s:%s' % (config.discovery_service_host, config.discovery_service_port)
 	return get_clouds(hostUrl)
+
 
 @homeBP.route('/deletejob', methods=['DELETE'])
 def delete_job():
@@ -78,3 +81,16 @@ def delete_job():
 	else:
 		response = jsonify({'status': 'failed'}), 400
 	return response
+
+
+@homeBP.route('/results', methods=['GET'])
+def get_results():
+	job_name = request.args.get('jobname', None)
+	if job_name:
+		job_name = secure_filename(job_name)
+		filename = '%s.tar.gz' % job_name
+		results_hostpath = os.path.join(config.results_hostpath, filename)
+
+		return send_from_directory(directory=config.results_hostpath, filename=filename)
+	else:
+		return jsonify({'status': 'failed'}), 400

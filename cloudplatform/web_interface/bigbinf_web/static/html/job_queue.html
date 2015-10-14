@@ -17,7 +17,11 @@
 				<td>{{job.name}}</td>
 				<td>{{job.timestamp}}</td>
 				<td>
-				<a ng-if='job.status==="completed"' ng-click='deleteJob(job.name)'>remove</a>
+					<a ng-if='job.status==="results ready"' href='/results?jobname={{job.name}}' class='pointer'>results</a>
+				</td>
+
+				<td>
+					<a ng-if='job.status==="completed" || job.status==="results ready"' ng-click='deleteJob(job.name)'>remove</a>
 				</td>
 
 			</tr>
