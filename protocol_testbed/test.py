@@ -59,9 +59,14 @@ def test(protocol, datestring, batch_id):
     # Make sure the dump directory exists
     if not os.path.exists("packet_dumps"):
         os.makedirs("packet_dumps")
+
     # Write dump file
     with open("packet_dumps/%s_%s_%s.dump" % (protocol_name, filename, datestring), "w") as f:
         json.dump(dump.output, f)
+
+    # Remove file if flag is set
+    if args.delete_files:
+        os.remove(filepath)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -76,6 +81,8 @@ if __name__ == "__main__":
                         help="The path where the file shold be copied to. \
                               Please use full paths with a trailing slash.")
     parser.add_argument("--store-packets", dest="store_packets", action="store_true",
+                        default=False)
+    parser.add_argument("--delete-files", dest="delete_files", action="store_true",
                         default=False)
     args = parser.parse_args()
 

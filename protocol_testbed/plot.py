@@ -21,7 +21,6 @@ def plot_packets(batch_id):
     """
     dump_batch_names = get_fnames_by_id(batch_id)
 
-
     dump_protocols = []
     filesize = 0
 
@@ -32,7 +31,7 @@ def plot_packets(batch_id):
             dump = json.load(f)
 
         # If any of the dumps don't have a packets array, abort the whole dump
-        if not dump["stored_packets"]:
+        if not dump.get("stored_packets", True):
             print "Dump %s was not captured with --store-packets" % name
             return
 
@@ -64,7 +63,7 @@ def plot_packets(batch_id):
     fig.text(0.04, 0.5, "Length of payload (bytes)", ha='center', va='center',
              rotation='vertical', size=16)
     fig.suptitle("Individual Packets for %s Transfer" % filesize, size=18)
-    axes[3].legend(bbox_to_anchor=(1, -0.1))
+    axes[4].legend(bbox_to_anchor=(1, -0.1))
     fig.show()
 
 def plot_speed_efficiency(df, filesize):
@@ -105,15 +104,13 @@ def plot_speed_per_filesize(df, ratio=False, ignore_small=True):
     Takes an aggregated dataframe and plots
     speed as a function of filesize
     """
-    
-    if ignore_small:
-        smallest = min(df["File Size (bytes)"])
-        df = df[df["File Size (bytes)"] != smallest]
+
+    if ignore_small: # Ignore things less than 10Mb
+        df = df[df["File Size (bytes)"] >= 10000000]
 
     agg = df.groupby(["File Size (bytes)", "Protocol"]).aggregate(np.mean)
     agg_inverse = df.groupby(["Protocol", "File Size (bytes)"]).aggregate(np.mean)
 
-    sizes = agg.index.levels[0]
     protocols = agg.index.levels[1]
 
     markers = ["o", "o", "o", "*", "*"]
@@ -129,7 +126,7 @@ def plot_speed_per_filesize(df, ratio=False, ignore_small=True):
         ylabel = "Speed (bytes/s)"
         for i, p in enumerate(protocols):
             sel = agg_inverse.loc[p]
-            plt.plot(sizes, sel["Speed (bytes/s)"], marker=markers[i],
+            plt.plot(sel.index, sel["Speed (bytes/s)"], marker=markers[i],
                      color=colors[i], label=p, linewidth=2, ms=12)
 
     plt.title("Speed vs Filesize", size=22)
@@ -144,16 +141,15 @@ def plot_data_per_filesize(df, ignore_small=True):
     plots the efficiency (overhead/compression) as a function
     of filesize
     """
+    if ignore_small: # Ignore things less than 10Mb
+        df = df[df["File Size (bytes)"] >= 10000000]
+
     agg = df.groupby(["File Size (bytes)", "Protocol"]).aggregate(np.mean)
 
     sizes = agg.index.levels[0]
     protocols = agg.index.levels[1]
 
     size_df = calc_data_per_filesize(agg)
-
-    if ignore_small:
-        sizes = sizes[1:]
-        size_df = size_df[1:]
 
     for i, p in enumerate(protocols):
         plt.plot(sizes, size_df[p], marker=MARKERS[i], color=COLORS[i], label=p, linewidth=2, ms=12)

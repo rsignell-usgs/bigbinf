@@ -52,8 +52,11 @@ def get_dumps(fnames):
         # size = os.stat("packet_dumps/%s" % fname).st_size
         # print "Reading in %s (%s)" % (fname, sizeof_fmt(size))
         with open("packet_dumps/%s" % fname) as f:
-            raw_dump = json.load(f)
-            if raw_dump["stored_packets"]:
+            try:
+                raw_dump = json.load(f)
+            except ValueError:
+                raise Exception("There was a problem parsing %s" % fname)
+            if raw_dump.get("stored_packets", True):
                 del raw_dump["packets"]
             dumps.append(raw_dump)
 
@@ -72,6 +75,7 @@ def organize_dumps(dumps):
     # that were collected before the value existed
     if not "stored_packets" in df.columns:
         df["stored_packets"] = True
+    df["stored_packets"].fillna(True, inplace=True)
 
     # Calculate new columns and round
     df["time"] = np.round(df["time"], 2)
@@ -151,6 +155,7 @@ def sum_bytes(packets):
     """
     Returns the (down, up, total) bytes of the transfer
     """
+    # TODO: Use pandas to do this
     down = 0
     up = 0
     total = 0
