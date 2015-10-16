@@ -1,8 +1,12 @@
 config = {
 	'clouds': [
 		{
-			'hostUrl':'http://localhost:5001/',
-			'name': 'UCT'
+			'hostUrl':'http://41.164.8.116:5001/',
+			'name': 'SANBI1'
+		},
+		{
+			'hostUrl':'http://41.164.8.116:5002/',
+			'name':'SANBI2'
 		}
 	]
 }

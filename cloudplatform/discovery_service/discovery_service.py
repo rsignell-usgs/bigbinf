@@ -7,4 +7,4 @@ def get_clouds():
     return jsonify(config)
 
 if __name__ == "__main__":
-    app.run(port=5004, debug=True)
+    app.run(port=5004)
