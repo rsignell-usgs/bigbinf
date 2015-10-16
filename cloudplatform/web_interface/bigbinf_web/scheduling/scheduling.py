@@ -31,7 +31,7 @@ class BuildScheduler(Thread):
 		job.job_file.close()
 		for line in response:
 			build_status = line
-			#print(line)
+			print(line)
 
 
 		build_success_str = 'Successfully built'
@@ -41,13 +41,14 @@ class BuildScheduler(Thread):
 
 	def push_image(self, job):
 		"""push image to the private registry"""
+		print 'pushing image:', job.image_name
 		response = remote_push_registry(job.builder_url, job.registry_url, job.image_name)
-		response = list(response)
+		response_list = []
 		for line in response:
-			#print(line)
-			pass
+			print line
+			response_list.append(line)
 		push_success_str = 'Image successfully pushed'
-		if not push_success_str in response[-2]:
+		if not (push_success_str in response_list[-2] or push_success_str in response_list[-3]):
 			return False
 		return True
 
@@ -62,6 +63,7 @@ class BuildScheduler(Thread):
 				success = self.build_image(job)
 				if success:
 					success = self.push_image(job)
+					print 'pushing image to registry:', success
 				if success:
 					self.building_queue.get()
 					self.building_queue.task_done()

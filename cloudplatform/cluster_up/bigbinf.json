@@ -42,6 +42,12 @@
 								"protocol": "TCP"
 							}
 						],
+						"volumeMounts": [
+							{
+								"name": "docker-registry-cache",
+								"mountPath": "/var/lib/registry"
+							}
+						],
 						"imagePullPolicy": "IfNotPresent"
 					},
 					{
@@ -64,7 +70,27 @@
 								"protocol": "TCP"
 							}
 						],
+						"volumeMounts": [
+							{
+								"name": "docker-cache",
+								"mountPath": "/var/lib/docker"
+							}
+						],
 						"imagePullPolicy": "IfNotPresent"
+					}
+				],
+				"volumes": [
+					{
+						"name": "docker-cache",
+						"hostPath":{
+							"path": "/mnt/rbd2/docker-cache"
+						}
+					},
+					{
+						"name": "docker-registry-cache",
+						"hostPath":{
+							"path": "/mnt/rbd2/docker-registry-cache"
+						}
 					}
 				]
 				
