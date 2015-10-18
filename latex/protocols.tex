@@ -1,39 +1,31 @@
 \documentclass{sig-alternate-05-2015}
 \usepackage{float}
 \usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{booktabs}
 
 
 \begin{document}
-% Copyright
-%\setcopyright{acmcopyright}
-% DOI
-\doi{000000}
-
-% ISBN
-\isbn{000000}
-
 \title{Access to Big Data in Bioinformatics}
-% \subtitle{[Extended Abstract]}
 
 \numberofauthors{1}
 \author{
-\alignauthor
-Andrew van Rooyen\\
-       \affaddr{University of Cape Town}\\
+\alignauthor Andrew van Rooyen\\
+\affaddr{University of Cape Town}\\
+\email{Andrew.vanRooyen@alumni.uct.ac.za}
 }
 
 \date{30 August 2015}
 
-\toappear{
-	This paper and associated code is available at \url{https://github.com/wraithy/bigbinf}\\
-	The OpenSSH-Portable installation used for HPN-SSH was compiled frm \url{https://github.com/rapier1/openssh-portable}\\
-	The large hg38.fa.align.gz dataset used is available at \url{http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/}\\
-	For more information, please see \url{pubs.cs.uct.ac.za}
+\toappear{This paper and associated code is available at \url{https://github.com/wraithy/bigbinf}\\
+The OpenSSH-Portable installation used for HPN-SSH was compiled from \url{https://github.com/rapier1/openssh-portable}\\
+The large hg38.fa.align.gz dataset used is available at \url{http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/}\\
+For more information, please see \url{pubs.cs.uct.ac.za}
 }
 
 \maketitle
 \begin{abstract}
-	TODO
+TODO
 \end{abstract}
 % \keywords{Big Data; BioInformatics; Clouds}
 
@@ -45,128 +37,233 @@ Generally, sequence data is stored in a data warehouse. Storing this information
 
 There are a plethora of sequence file formats whose efficiency depends on the kind of data stored. Two of the most popular are FASTQ, which stores aggregated reads along with the quality of each DNA base pair~\cite{cock2010sanger}, and BAM, the binary, compressed version of the Sequence Alignment Map (SAM) format~\cite{SAMspec}.
 
-Researchers often require access to the data warehouses to transfer the sequences they need. Luckily, these locations are often connected by massive data pipes like National Research and Education Networks (NREN's). For example, South African universities are connected by the South African National Research Network \cite{sanren} which runs at 10Gbps. Unfortunately, standard transfer protocols like FTP and SSH were not designed for use on high-throughput networks, and alternate protocols must be used to avoid bottlenecks.
+Researchers often require access to the data warehouses to transfer the sequences they need. Luckily, these locations are often connected by massive data pipes like National Research and Education Networks (NREN's). For example, South African universities are connected by the South African National Research Network~\cite{sanren} which runs at 10Gbps. Unfortunately, standard transfer protocols like FTP and SSH were not designed for use on high-throughput networks, and alternate protocols must be used to avoid bottlenecks.
 
-Some proprietary transfer protocols are widely used in practice - for example, the \textit{fasp} protocol by the US based company AsperaSoft. Based on UDP, this protocol eliminates the latency issues seen with TCP, and provides transfer bandwidth of up to 10 gigabits per second~\cite{beloslyudtsev2014aspera}.
+Some proprietary transfer protocols are widely used in practice \emdash for example, the \textit{fasp} protocol by the US based company AsperaSoft. Based on UDP, this protocol eliminates the latency issues seen with TCP, and provides transfer bandwidth of up to 10 gigabits per second~\cite{fan2010petabytes}.
 
 There have been some attempts to avoid data transfer altogether. This means processing data remotely, and there has been an explorative push towards cloud solutions from companies such as Amazon and Google~\cite{baker2010next}. Unfortunately, even though cloud data centres have plenty of cheap storage, the transfer bottleneck remains as researchers must still upload their raw data to the cloud data centres every time they run a new experiment. Some researchers have even resorted to mailing hard drives~\cite{baker2010next}.
 
 There are also security, privacy and ethical concerns with outsourcing processing power to other companies, as sequenced DNA data is often highly sensitive information~\cite{marx2013biology}.
 
-In this work, we compare the GridFTP, FTP, HPN-SSH and SSH file transfer protocols to determine which is best for transferring bioinformatics data on an educational network. These are the most popular protocols for file transfer in the field, perhaps with the exception of AsperaSoft's \textit{fasp}, which is non-free. 
+Although it would be ideal for researchers if this reliance on data transfer was removed, the current solutions do not provide good enough answers at every scale. Therefore, transferring big data is still a necessary evil for the time being.
+
+In situations where data \textit{must} be transferred, it stands to reason that the transfer should happen in the most efficient way.
+
+In this work, we construct a testbed which can be deployed on a network to test various transfer protocols. The testbed is outlined, and then used to test SCP, FTP, GridFTP and HPN-SCP. These are the most popular protocols for file transfer in the field, perhaps with the exception of AsperaSoft's \textit{fasp}, which is non-free. 
 
 In order to test the protocols in a relevant environment, the tests are run between the University of Cape Town (UCT) and the University of the Western Cape (UWC) which are connected via SANReN.
 
 \section{Methods}
-The transfer protocols are tested to establish measures of speed, data overhead and packet size. Transfers are run periodically at various hours of the day.
+A testbed is created to measure speed, data efficiency and packet size of specific transfer protocols. Transfers are run and information about them is captured and saved. These logs are then analysed and displayed visually. The testbed does not try to come up with the `best transfer protocol', but rather presents the information relevant to the specific environment so that the user can make decisions.
 
-\subsection{Protocols}
-The OpenSSH~\cite{openssh} implementations of FTP (sftp) and SSH (scp) are tested. High Performance SSH (HPN-SSH) is a set of patches to OpenSSH which removes bottlenecks~\cite{rapier2008high}. The scp binary from a patched, portable version of OpenSSH is tested for HPN. This is installed alongside the original so that both binaries are available.
+\subsection{Testbed Design}
+The testbed has been designed to be simple, modular and extensible. A simple Python system is sufficient, because almost all of the work transferring and logging the data is done by external programs. The testbed simply acts as a mediator between them.
 
-The `lite' version of GridFTP~\cite{allcock2005globus} is used. This means that authentication is done via ssh as opposed a previously-configured certificate authority. This makes no difference to the file transfer itself, but it prevents unnecessary configuration of the testbed which can be quite complex in the case of `full' GridFTP~\cite{gridftplite}.
+The data dump format is a simple json template, and can be parsed by the separate analysis code.
 
-Once the ideal protocol is decided on, it is made available as an endpoint to the microcloud system, so that users can retrieve their results in an optimal way.
+The protocols to be tested are specified in a config file, and have no imposed limits. As long as the correct binaries are installed on the machine, a user could test any transfer program as long as they know the command line arguments.
 
-\subsection{Approach}
-Transfers using each of the four protocols are run while the network traffic is logged.
+The testbed itself is designed to have minimal dependencies, while the optional analysis notebook makes heavy use of Python data science packages.
+
+The logging mechanism makes use of the `tcpdump' program~\cite{tcpdump}, which comes with most Unix-like systems. As depicted in Figure~\ref{fig:copy_example}, it watches a network interface (e.g.\ eth0) and logs information about packets which pass through. The program is run while each transfer is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2. This output is used as the raw data for analysis.
+
+The Python program for running the file transfers has been written to accept: the name of the network interface, the remote hostname (Host 2), the path of the file on Host 2, and a local path to copy the file to.
+It then resolves the IPs of each host, and for each protocol, runs a transfer in isolation. 
 
 \begin{figure}[t]
-	\centering
-	\includegraphics[width=0.4\textwidth]{img/route.png}
-	\caption{The hosts in their environment.
-	         \label{fig:route}}
+\centering
+\includegraphics[width=\linewidth]{img/loop}
+\caption{The sequence of actions performed by the testbed. This is repeated once for each protocol.\label{fig:testbed_sequence}}
 \end{figure}
 
-The hosts are virtual machines running at the South African National Bioinformatics Institute (UWC) and the Science DMZ (UCT). Both locations are close to the SANReN link, and outside institutional firewalls as depicted in Figure \ref{fig:route}. This means that throttling is avoided, and ensures a minimum speed of 1Gbps.
+As shown in Figure~\ref{fig:testbed_sequence}, it spawns a tcpdump subprocess which runs for precisely as long as the copy runs. The tcpdump program is started with filters, so that only traffic between the two hosts is captured. It then saves the output in a file.
+
+This allows for a controlled environment, because tcpdump only captures while the copy is running, no other packets are included in the logs. Also, the copies are run programmatically and consecutively. Successive copies are not started until both the tcpdump and protocol processes have been closed, and the log file has been written. This means that they are all run in an identical (within reason) environment, but at the same time do not interfere with each other.
+
+This test process is run multiple times for statistical reasons, generating multiple log files.
+
+A Jupyter notebook~\cite{jupyter} is provided to read in the dump files. This information can be aggregated, and then used to calculate metrics and display graphs. These include plots which are computed by looking at the time of each packet, and the size of its payload.
+
+\subsection{Test Case between UCT and UWC}
+The testbed is deployed between two hosts as a development environment for the testbed itself. Once ready, a full set of tests is run between them.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{img/route.png}
+\caption{The hosts in their environment.\label{fig:route}}
+\end{figure}
+
+The hosts are virtual machines running at the South African National Bioinformatics Institute (UWC) and the Science DMZ (UCT). Both locations are close to the SANReN link, and outside institutional firewalls as depicted in Figure~\ref{fig:route}. This means that throttling is avoided, and ensures a minimum speed of 1Gbps.
+
+Four different protocols were chosen to be tested. Two of the most widely used are FTP and SCP, and each of these has a more recent successor (GridFTP and HPN-SCP respectively).
+
+Transfers using each of the four protocols are run while the network traffic is logged.
 
 The testing environment is kept as stable as possible during tests, and multiple tests are run at different times of the day.
 
 \begin{figure}[t]
-	\centering
-	\includegraphics[width=0.4\textwidth]{img/transfer_example.png}
-	\caption{Host 1 copying a file and capturing packets
-	         \label{fig:copy_example}}
+\centering
+\includegraphics[width=\linewidth]{img/transfer_example.png}
+\caption{Host 1 copying a file and capturing packets.\label{fig:copy_example}}
 \end{figure}
-For each transfer, a copy is initiated from Host 1. A file from Host 2 is transferred to Host 1 using the particular protocol (see Figure \ref{fig:copy_example}).
+For each transfer, a copy is initiated from Host 1. A file from Host 2 is transferred to Host 1 using the particular protocol (see Figure~\ref{fig:copy_example}).
 
-The tests are run with 3 files: A 6 byte file containing the word `hello', a 350MB video file and a 2.4 GB gzipped sequence alignment file. Even though the protocols are agnostic of file format (they treat everything as binary), the 2.4GB file is a typical dataset that researchers would need.
+The tests are run with 6 files. These are one small 5Mb file, and five files between 0.5Gb and 2.4Gb in 0.5Gb increments. These were all generated by reading chunks of a 2.4 GB gzipped sequence alignment file. Even though the protocols are agnostic of file format (they treat everything as binary), the sequence alignment file is a typical dataset that researchers would need to transfer.
 
-The `tcpdump' program (\url{www.tcpdump.org}) comes with most Unix systems. As depicted in Figure \ref{fig:copy_example}, it watches a network interface (e.g.\ eth0) and logs information about packets which pass through. The program is run while each transfer is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2. This output is used as the raw data for analysis.
+\subsection{Protocols}
+The OpenSSH~\cite{openssh} implementations of FTP (sftp) and SSH (scp) are tested. High Performance SSH (HPN-SSH) is a set of patches to OpenSSH which removes bottlenecks~\cite{rapier2008high}. The scp binary from a patched, portable version of OpenSSH is tested for HPN\@. This is installed alongside the original so that both binaries are available.
 
-This approach allows analysis of transfer overhead (because \textit{all} transferred data is logged, rather than just the file size), speed (data/time), consistency, total time, and total size.
+The `lite' version of GridFTP~\cite{allcock2005globus} is used. This means that authentication is done via ssh as opposed a previously-configured certificate authority. This makes no difference to the file transfer itself, but it prevents unnecessary configuration of the testbed which can be quite complex in the case of `full' GridFTP~\cite{gridftplite}.
 
-Note that despite the name, tcpdump can also capture UDP packets, which is relevant if GridFTP is run in UDT mode~\cite{gu2007udt}. This is an alternate protocol built on top of UDP which aims to overcome congestion control bottlenecks found in TCP. Although Bresnahan et. al. found that GridFTP's UDT mode outperformed the TCP mode~\cite{bresnahan2009udt}, both modes are still tested.
+GridFTP supports data `striping', which allows a transfer to be split across multiple hosts, potentially combining their bandwidths. This feature is not used, because the number of available nodes can vary greatly between configurations, and it would make comparisons with single-stream transfers unrealistic.
 
-\subsection{Implementation of Testbed}
-A simple Python script is sufficient to run the transfers, as most of the work is done by a subprocess for each specific protocol. The analysis is also done with Python, as there are a vast number of analytical and visualisation tools available.
+GridFTP also provides two modes of general operation. The default mode operates on top of the TCP stack, but there is a newer `UDT' mode which is based on UDP\@. This mode aims to overcome congestion control bottlenecks found in TCP\@. Although Bresnahan et.\ al.\ found that the UDT mode outperformed the TCP mode~\cite{bresnahan2009udt}, both modes are still tested. Note that despite it's name, the tcpdump program will capture UDP packets.
 
-All testing is done on an Ubuntu 14.04 system, with the respective transfer programs installed. 
-
-The Python script for running the file transfers has been written to accept: the name of the network interface, the remote hostname (Host 2), the path of the file on Host 2, and a local path to copy the file to.
-It then resolves the IPs of each host, and for each protocol, runs a transfer in isolation. 
-\begin{figure}[t]
-	\centering
-	\includegraphics[height=0.5\textheight]{img/seq_example}
-	\caption{The sequence of subprocesses called by the testbed.
-	         \label{fig:testbed_sequence}}
-\end{figure}
-As shown in Figure \ref{fig:testbed_sequence}, it spawns a tcpdump subprocess which runs for precisely as long as the copy runs. The tcpdump program is started with filters, so that only traffic between the two hosts is captured. It then saves the output in a file.
-
-This allows for a controlled environment, because the tcpdump only captures while the copy is running, no other packets are included in the logs. Also, the copies are run programmatically and consecutively. Successive copies are not started until both the tcpdump and protocol processes have been closed, and the log file has been written. This means that they are all run in an identical (within reason) environment, but at the same time do not interfere with each other.
-
-This test process is run multiple times for statistical reasons, generating multiple log files.
-
-A separate Python file then reads in the log files and parses them. This information is used to calculate metrics and display graphs.
-Operations can then be run by looking at the time of each packet, and the size of its payload. 
-
-This data can then be aggregated over multiple log files, and graphed using the matplotlib Python library.
-
-\newpage
-\newpage
 \section{Results}
-\begin{figure}
-	\centering
-	\includegraphics[width=0.5\textwidth]{img/dataframe.png}
-	\caption{The raw data, aggregated per protocol
-	         \label{fig:testdata_detail}}
-\end{figure}
+Results were collected by running the testbed at 13h00 and 3h00 each day, for a period of two weeks. For some of the tests, all the collected data (including information about each packet) was stored to disk. Because this is very space intensive (a single test run could generate multiple gigabytes of dump files), most of the tests only stored their aggregated data. 
 
-\begin{figure}
-	\centering
-	\begin{subfigure}
-		\includegraphics[height=0.35\textheight]{img/packets/6b.png}
-	\end{subfigure}
-	\begin{subfigure}
-		\includegraphics[height=0.35\textheight]{img/packets/350Mb.png}
-	\end{subfigure}
-	\begin{subfigure}
-		\includegraphics[height=0.35\textheight]{img/packets/2_4Gb.png}
-	\end{subfigure}
-	\caption{A graphical representation of each transfer
-	         \label{fig:testdata_packets}}
-\end{figure}
+The measures were chosen by practicality. For example, behind the scenes information like window sizes is not collected, because the biggest concern for users is speed and size.
 
-\begin{figure}
-	\centering
-	\begin{subfigure}
-		\includegraphics[width=0.5\textwidth]{img/speed_bytes/6b.png}
+\subsection{Network stability}
+\begin{figure*}
+\centering
+	\begin{subfigure}{.4\textwidth}
+	\includegraphics[width=\linewidth]{img/packets/good.png}
+	\caption{Stable network}
+	\label{fig:good_transfer}
 	\end{subfigure}
-	\begin{subfigure}
-		\includegraphics[width=0.5\textwidth]{img/speed_bytes/350Mb.png}
+	\begin{subfigure}{.4\textwidth}
+	\includegraphics[width=\linewidth]{img/packets/bad.png}
+	\caption{Unstable network}
+	\label{fig:bad_transfer}
 	\end{subfigure}
-	\begin{subfigure}
-		\includegraphics[width=0.5\textwidth]{img/speed_bytes/2_4Gb.png}
+\caption{A graphical fingerprint of each transfer}
+\label{fig:packets}
+\end{figure*}
+
+The stability of the network at each time affects the speed of the transfers, but it is sometimes useful to look other, more subtle effects as well. Figure~\ref{fig:packets} represents  one complete transfer for each transfer protocol, for one file size (five rotations of Figure~\ref{fig:testbed_sequence}). This test is shown as a time series, where each point on the plot represents a packet. Both incoming and outgoing packets are plotted, and the height of each packet represents the size of it's payload.
+
+Firstly, comparing Figure~\ref{fig:good_transfer} and Figure~\ref{fig:bad_transfer} confirms that transfers on a busy network do take longer. Secondly, the comparison shows how each transfer protocol handles the congestion. The fingerprints for the TCP based protocols are very similar, while the UDP based UDT mode of GridFTP changes in an obvious way. This mode tries to match it's packet sizes to the network MTU (Maximum Transmission Unit) for efficiency. The MTU for the ethernet interface on the test machine was 1500, and Figure~\ref{fig:good_transfer} is an example of the transfer operating in ideal conditions, consistently achieving this size. However, it is clear from Figure~\ref{fig:bad_transfer} that the first half of the transfer was congested, and a bigger payload is forced into each packet. This is only one of the factors that influence transfer speed, but it clearly does have a negative impact.
+
+% TODO:
+X is a more conventional summary of the differences in network stability.
+
+\subsection{Speed and Data Efficiency}
+
+\begin{figure*}[t]
+\centering
+	\hspace*{30pt}
+	\begin{subfigure}{.24\linewidth}
+	\includegraphics[width=\linewidth]{img/speed_bytes/5M.png}
+	\caption{5 Megabytes}
+	\label{speed_bytes_5M}
 	\end{subfigure}
-	\caption{Aggregated data per protocol, with a line representing filesize
-	         \label{fig:testdata_aggregate}}
-\end{figure}
+	\begin{subfigure}{.228\linewidth}
+	\includegraphics[width=\linewidth]{img/speed_bytes/512M.png}
+	\caption{0.5 Gigabytes}
+	\label{speed_bytes_512M}
+	\end{subfigure}
+	\begin{subfigure}{.285\linewidth}
+	\includegraphics[width=\linewidth]{img/speed_bytes/1G.png}
+	\caption{1 Gigabyte}
+	\label{speed_bytes_1G}
+	\end{subfigure}
+	\\
+	\begin{subfigure}{.24\linewidth}
+	\includegraphics[width=\linewidth]{img/speed_bytes/1_5G.png}
+	\caption{1.5 Gigabytes}
+	\label{speed_bytes_1_5G}
+	\end{subfigure}
+	\begin{subfigure}{.24\linewidth}
+	\includegraphics[width=\linewidth]{img/speed_bytes/2G.png}
+	\caption{2 Gigabytes}
+	\label{speed_bytes_2G}
+	\end{subfigure}
+	\begin{subfigure}{.24\linewidth}
+	\includegraphics[width=\linewidth]{img/speed_bytes/2_4G.png}
+	\caption{2.4 Gigabytes}
+	\label{speed_bytes_2_4G}
+	\end{subfigure}
+\caption{Aggregated data per protocol}
+\label{fig:aggregate}
+\end{figure*}
+
+Figure~\ref{fig:aggregate} is a comparison between all five protocols measuring the total speed, and total bytes. This is aggregated across all tests for each protocol. Note that the speed calculations only include downstream data, while the `transferred data' measures include data that is sent from the client back to the server via control channels etc. The dashed red line in each plot represents the size of the transferred file, and can be used for quick reference to see if a particular transfer protocol sends more or less data than the filesize on average. If the point lies to the right of the red line, the transfer has an overhead on average. If the point is on the left, the protocol has managed to send compressed data in an efficient way.
+
+\begin{table*}
+\centering
+	\begin{tabular}{lrlrrrrrr}
+	\toprule
+	File Size (bytes) & Protocol &   Bytes Down &  Bytes Up &  Bytes Total &  Ratio (\%) &  Time (s) &  Speed (bytes/s) \\
+	\midrule
+	   5242880 &      ftp &    9922928.4 &   14540.1 &    9937468.5 &      189.5 &       1.4 &       12094979.9 \\
+			   &  gridftp &    5080052.9 & 8774708.2 &   13854761.0 &      264.3 &       1.3 &        3886209.6 \\
+			   &  hpn-scp &    4666512.3 &    6496.9 &    4673009.1 &       89.1 &       1.0 &        4829022.0 \\
+			   &      scp &    5224851.0 &  160461.1 &    5385312.1 &      102.7 &       1.0 &        5506684.1 \\
+	\midrule
+	 536870912 &      ftp &  537007757.3 & 1291980.4 &  538299737.7 &      100.3 &      23.3 &       23161405.3 \\
+			   &  gridftp &  534573783.6 &    4429.3 &  534578212.9 &       99.6 &      24.5 &       21980615.4 \\
+			   &  hpn-scp &  537171422.0 &  166915.8 &  537338337.8 &      100.1 &      23.6 &       22923730.8 \\
+			   &      scp &  534104526.3 &  188454.4 &  534292980.7 &       99.5 &      23.1 &       23189047.2 \\
+	\midrule
+	1073741824 &      ftp & 1073357571.6 & 2553835.6 & 1075911407.2 &      100.2 &      46.6 &       23139968.4 \\
+	           &  gridftp & 1073079145.8 &    4428.0 & 1073083573.8 &       99.9 &      47.9 &       22472118.5 \\
+	           &  hpn-scp & 1071535742.8 &  342785.1 & 1071878527.9 &       99.8 &      46.2 &       23227507.5 \\
+	           &      scp & 1074336336.4 &  382952.0 & 1074719288.4 &      100.1 &      45.4 &       23704931.9 \\
+	\midrule
+	1610612736 &      ftp & 1612216037.3 & 3828633.2 & 1616044670.5 &      100.3 &      69.3 &       23295999.1 \\
+	           &  gridftp & 1609088422.9 &    4426.1 & 1609092849.0 &       99.9 &      70.9 &       22740693.2 \\
+	           &  hpn-scp & 1610127154.9 &  511912.7 & 1610639067.7 &      100.0 &      69.4 &       23229536.9 \\
+	           &      scp & 1608744654.9 &  577390.4 & 1609322045.4 &       99.9 &      68.5 &       23490043.3 \\
+	\midrule
+	2147479552 &      ftp & 2148673854.9 & 5075559.6 & 2153749414.5 &      100.3 &      91.1 &       23604911.2 \\
+	           &  gridftp & 2147364435.1 &    4429.3 & 2147368864.3 &      100.0 &      95.7 &       22444177.1 \\
+	           &  hpn-scp & 2147870110.0 &  694075.5 & 2148564185.5 &      100.1 &      92.1 &       23345011.5 \\
+	           &      scp & 2149719545.9 &  774732.1 & 2150494278.1 &      100.1 &      91.1 &       23620164.9 \\
+	\midrule
+	2540610608 &      ftp & 2545393837.5 & 5996149.6 & 2551389987.0 &      100.4 &     107.4 &       23717061.8 \\
+	           &  gridftp & 2536383335.4 &    4406.8 & 2536387742.2 &       99.8 &     114.7 &       22128903.4 \\
+	           &  hpn-scp & 2531341159.6 &  792915.0 & 2532134074.6 &       99.7 &     115.6 &       22026116.8 \\
+	           &      scp & 2534857393.3 &  913497.4 & 2535770890.7 &       99.8 &     108.2 &       23450202.2 \\
+	\bottomrule
+	\end{tabular}
+\caption{Numerical data aggregated data per protocol}
+\label{tab:aggregate}
+\end{table*}
+
+The corresponding numerical data (including upstream packets) can be seen in Table~\ref{tab:aggregate}.
+
+\begin{figure*}
+\centering
+	\begin{subfigure}{.4\textwidth}
+	\includegraphics[width=\textwidth]{img/per_filesize/speed.png}
+	\caption{Speed}
+	\label{fig:per_fs_speed}
+	\end{subfigure}
+	\begin{subfigure}{.4\textwidth}
+	\includegraphics[width=\textwidth]{img/per_filesize/data.png}
+	\caption{Data Efficiency}
+	\label{fig:per_fs_data}
+	\end{subfigure}
+\caption{Metrics calculated per file size}
+\label{fig:per_fs}
+\end{figure*}
+
+This same data can be represented as a function of filesize. In this case, Figure~\ref{fig:per_fs_data} shows the transferred data as a ratio of the file's size. A ratio of 100\% would mean that the the total number of bytes transferred is exactly the file size. Ratios larger and smaller than this are more and less data efficient respectively.
+
+It is not obvious that any particular protocol uses better compression for this particular file, because data points lower than 100\% are not consistent. It is obvious however, that GridFTP-UDT uses more data than the TCP based protocols.
+
+In a practical sense, all 5 protocols have roughly the same efficiency, where compression is less than 0.6\%, and overhead less than 5\%.
+
+Figure~\ref{fig:per_fs_speed} is probably the most straightforward graph in this paper, as it compares the speed of each protocol. Surprisingly, the only protocols that are good consistently are ftp and scp, where the newer protocols do slightly worse for all filesizes. It must be noted that the differences in speed are quite small at this scale (the graph is scaled to $10^6$). From a pracical perspective, the slowest protocol only takes 7.64\% longer than the fastest (for the 2.4Gb file size).
 
 \section{Acknowledgements}
-TODO
+This project would not have been possible without access to virtual machines at both UCT and UWC. Mr. Peter van Heusden (South African Bioinformatics Institute) was extremely available during the project period, and kindly set up a VM in the SANBI DMZ. He also granted access to the Cisco switch which allowed rules for each protocol to be configured. Mr. Heine de Jager provided access to the UCT Science DMZ, and was very accomodating under strict security protocols. He was also extremely available, and helped fix multiple issues with the GridFTP setup and firewall rules.
 
-\bibliographystyle{ACM-Reference-Format-Journals}
-\bibliography{ref} 
+\section{Conclusion}
 
+\bibliographystyle{abbrv}
+\bibliography{ref}
 
 \end{document}
 
