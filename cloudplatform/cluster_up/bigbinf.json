@@ -83,13 +83,13 @@
 					{
 						"name": "docker-cache",
 						"hostPath":{
-							"path": "/mnt/rbd2/docker-cache"
+							"path": "/mnt/rbd2/sanbi1/docker-cache"
 						}
 					},
 					{
 						"name": "docker-registry-cache",
 						"hostPath":{
-							"path": "/mnt/rbd2/docker-registry-cache"
+							"path": "/mnt/rbd2/sanbi1/docker-registry-cache"
 						}
 					}
 				]
