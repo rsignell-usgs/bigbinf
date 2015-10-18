@@ -66,7 +66,7 @@ def plot_packets(batch_id):
     axes[4].legend(bbox_to_anchor=(1, -0.1))
     fig.show()
 
-def plot_speed_efficiency(df, filesize):
+def plot_speed_efficiency(df, filesize, title=True, legend=True, yaxis=True, xaxis=True):
     """
     Given a pandas Dataframe, plots each protocol's speed
     vs it's data efficiency
@@ -76,7 +76,7 @@ def plot_speed_efficiency(df, filesize):
     x = rows["Bytes Total"]
     y = rows["Speed (bytes/s)"]
 
-    for i in range(5):
+    for i in range(len(rows)):
         pname = rows.index[i]
         plt.scatter(x[i], y[i], marker=MARKERS[i], color=COLORS[i], s=150, label=pname)
 
@@ -85,10 +85,14 @@ def plot_speed_efficiency(df, filesize):
     plt.plot([filesize, filesize], [ylim[0], ylim[1]], "r--", linewidth=3, label="filesize")
 
     # Add surrounding information
-    plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(filesize), size=22, y=1.1)
-    plt.ylabel("Speed (bytes/s)", size=20)
-    plt.xlabel("Total Bytes Transferred", size=20)
-    plt.legend(bbox_to_anchor=(1.3, 1), scatterpoints=1, prop={"size":"14"})
+    if yaxis:
+        plt.ylabel("Speed (bytes/s)", size=20)
+    if xaxis:
+        plt.xlabel("Total Bytes Transferred", size=20)
+    if title:
+        plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(filesize), size=22, y=1.1)
+    if legend:
+        plt.legend(bbox_to_anchor=(1.3, 1), scatterpoints=1, prop={"size":"14"})
 
     # Make sure the limits are correct and consistent
     plt.axes().yaxis.set_major_locator(plt.MaxNLocator(4))
