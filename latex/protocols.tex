@@ -125,6 +125,33 @@ Results were collected by running the testbed at 13h00 and 3h00 each day, for a 
 The measures were chosen by practicality. For example, behind the scenes information like window sizes is not collected, because the biggest concern for users is speed and size.
 
 \subsection{Network stability}
+Although each transfer in one test runs in the same environment, the time that tests are run can influence the results if the network is busier at certain times of the day.
+
+\begin{figure}
+\centering
+\includegraphics[width=.9\linewidth]{img/peak.png}
+\caption{Comparison of speed during peak and off hours.}
+\label{fig:peak}
+\end{figure}
+
+\begin{table}
+\centering
+	\begin{tabular}[c]{lr}
+	\toprule
+	Protocol &  p-value \\
+	\midrule
+	ftp     &      0.5 \\
+	hpn-scp &      0.9 \\
+	gridftp &      1.0 \\
+	scp     &      0.7 \\
+	\bottomrule
+	\end{tabular}
+\caption{p-values for a T-Test between the two sets, with null hypothesis that the speeds are the same.}
+\label{tab:pval}
+\end{table}
+
+Figure~\ref{fig:peak} is a conventional summary of the speed at various times in the day. "Peak hours" were considered to be between 11h00 and 15h00, and all tests were either in this time frame (peak) or not (off hours). Interestingly, the older protocols tend to be faster than their counterparts during peak hours, while the opposite is true during off hours. However, even though some might appear faster, a t-test between each set of subgroups reveals that the differences are not statistically significant. The p-values from this test can be seen in Table~\ref{tab:pval}, and their values are clearly quite large (meaning that we cannot reject the null hypothesis).
+
 \begin{figure*}
 \centering
 	\begin{subfigure}{.4\textwidth}
@@ -141,12 +168,9 @@ The measures were chosen by practicality. For example, behind the scenes informa
 \label{fig:packets}
 \end{figure*}
 
-The stability of the network at each time affects the speed of the transfers, but it is sometimes useful to look other, more subtle effects as well. Figure~\ref{fig:packets} represents  one complete transfer for each transfer protocol, for one file size (five rotations of Figure~\ref{fig:testbed_sequence}). This test is shown as a time series, where each point on the plot represents a packet. Both incoming and outgoing packets are plotted, and the height of each packet represents the size of it's payload.
+While the stability of the network at each time affects the speed of the transfers, but it is sometimes useful to look other, more subtle effects as well. Figure~\ref{fig:packets} represents  one complete transfer for each transfer protocol, for one file size (five rotations of Figure~\ref{fig:testbed_sequence}). This test is shown as a time series, where each point on the plot represents a packet. Both incoming and outgoing packets are plotted, and the height of each packet represents the size of it's payload. In this case, there was a confirmed instability at the specific date and time that Figure~\ref{fig:bad_transfer} was captured.
 
 Firstly, comparing Figure~\ref{fig:good_transfer} and Figure~\ref{fig:bad_transfer} confirms that transfers on a busy network do take longer. Secondly, the comparison shows how each transfer protocol handles the congestion. The fingerprints for the TCP based protocols are very similar, while the UDP based UDT mode of GridFTP changes in an obvious way. This mode tries to match it's packet sizes to the network MTU (Maximum Transmission Unit) for efficiency. The MTU for the ethernet interface on the test machine was 1500, and Figure~\ref{fig:good_transfer} is an example of the transfer operating in ideal conditions, consistently achieving this size. However, it is clear from Figure~\ref{fig:bad_transfer} that the first half of the transfer was congested, and a bigger payload is forced into each packet. This is only one of the factors that influence transfer speed, but it clearly does have a negative impact.
-
-% TODO:
-X is a more conventional summary of the differences in network stability.
 
 \subsection{Speed and Data Efficiency}
 
@@ -249,18 +273,18 @@ The corresponding numerical data (including upstream packets) can be seen in Tab
 \label{fig:per_fs}
 \end{figure*}
 
-This same data can be represented as a function of filesize. In this case, Figure~\ref{fig:per_fs_data} shows the transferred data as a ratio of the file's size. A ratio of 100\% would mean that the the total number of bytes transferred is exactly the file size. Ratios larger and smaller than this are more and less data efficient respectively.
+This same data can be represented as a function of filesize. In this case, Figure~\ref{fig:per_fs_data} shows the transferred data as a ratio of the file's size. A ratio of 100\% would mean that the total number of bytes transferred is exactly the file size. Ratios larger and smaller than this are more and less data efficient respectively.
 
 It is not obvious that any particular protocol uses better compression for this particular file, because data points lower than 100\% are not consistent. It is obvious however, that GridFTP-UDT uses more data than the TCP based protocols.
 
 In a practical sense, all 5 protocols have roughly the same efficiency, where compression is less than 0.6\%, and overhead less than 5\%.
 
-Figure~\ref{fig:per_fs_speed} is probably the most straightforward graph in this paper, as it compares the speed of each protocol. Surprisingly, the only protocols that are good consistently are ftp and scp, where the newer protocols do slightly worse for all filesizes. It must be noted that the differences in speed are quite small at this scale (the graph is scaled to $10^6$). From a pracical perspective, the slowest protocol only takes 7.64\% longer than the fastest (for the 2.4Gb file size).
+Figure~\ref{fig:per_fs_speed} is probably the most straightforward graph in this paper, as it compares the speed of each protocol. Surprisingly, the only protocols that are good consistently are ftp and scp, where the newer protocols do slightly worse for all file sizes. It must be noted that the differences in speed are quite small at this scale (the graph is scaled to $10^6$). From a practical perspective, the slowest protocol only takes 7.64\% longer than the fastest (for the 2.4Gb file size).
+
+\section{Conclusions}
 
 \section{Acknowledgements}
-This project would not have been possible without access to virtual machines at both UCT and UWC. Mr. Peter van Heusden (South African Bioinformatics Institute) was extremely available during the project period, and kindly set up a VM in the SANBI DMZ. He also granted access to the Cisco switch which allowed rules for each protocol to be configured. Mr. Heine de Jager provided access to the UCT Science DMZ, and was very accomodating under strict security protocols. He was also extremely available, and helped fix multiple issues with the GridFTP setup and firewall rules.
-
-\section{Conclusion}
+This project would not have been possible without access to virtual machines at both UCT and UWC. Mr. Peter van Heusden (South African Bioinformatics Institute) was extremely available during the project period, and kindly set up a VM in the SANBI DMZ. He also granted access to the Cisco switch which allowed rules for each protocol to be configured. Mr. Heine de Jager provided access to the UCT Science DMZ, and was very accommodating under strict security protocols. He was also extremely available, and helped fix multiple issues with the GridFTP setup and firewall rules.
 
 \bibliographystyle{abbrv}
 \bibliography{ref}
