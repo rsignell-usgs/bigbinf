@@ -1,7 +1,7 @@
 """
 Functions to produce matplotilb figures
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import json
 import numpy as np
 from matplotlib import pyplot as plt, dates
@@ -166,5 +166,30 @@ def plot_data_per_filesize(df, ignore_small=True):
     plt.xlabel("Filesize (bytes)", size=20)
     plt.ylabel("Ratio of Filesize (%)", size=20)
     plt.legend(bbox_to_anchor=(1.2, 1), prop={"size":"16"})
+    plt.show()
+
+def plot_speed_day_night(speed_day, speed_night, title=True):
+    """
+    Plots a comparison of the speed for each protocol
+    during peak and off hours
+    speed_day and speed_night are Pandas Series, indexed
+    by protocol name
+    """
+    # Index along the longest set of protocols
+    p_names = sorted(set(speed_day.index))
+    ind = np.array(range(len(p_names)))
+    
+    # Plot the values
+    width = 0.3
+    plt.bar(ind, speed_day, width=width, color="y", label="Peak hours")
+    plt.bar(ind+width, speed_night, width=width, color="#000022", label="Off hours")
+    
+    # Set up the graph
+    if title:
+        plt.title("Peak vs Off Hours Speed", size=24)
+    plt.xticks(ind+width)
+    plt.legend(prop={"size":"20"})
+    plt.ylabel("Speed (bytes/s)", size=22)
+    plt.gca().set_xticklabels(p_names, size=22)
     plt.show()
 
