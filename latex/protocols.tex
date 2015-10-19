@@ -27,8 +27,6 @@ For more information, please see \url{pubs.cs.uct.ac.za}
 \begin{abstract}
 TODO
 \end{abstract}
-% \keywords{Big Data; BioInformatics; Clouds}
-
 
 \section{Introduction}
 Next generation sequencing has resulted in a massive increase in the size of bioinformatics datasets, which can be tens of gigabytes in size~\cite{deorowicz2011compression}. Sequencing technologies like SOLiD provide much higher data output at a cheaper cost~\cite{shendure2008next}, which creates challenges in data storage, transfer and access. In fact, the cost of storing a byte has been higher than sequencing a base pair since before 2010~\cite{baker2010next}.
@@ -124,6 +122,8 @@ Results were collected by running the testbed at 13h00 and 3h00 each day, for a 
 
 The measures were chosen by practicality. For example, behind the scenes information like window sizes is not collected, because the biggest concern for users is speed and size.
 
+Even though the network could theoretically support up to 1Gbit/s, the speeds achieved throught these tests were around 200Mbit/s. Although this is not as high as hoped, it is still a massive speedup over conventional South African networks, and these speeds are still typical to the use case in the field.
+
 \subsection{Network stability}
 Although each transfer in one test runs in the same environment, the time that tests are run can influence the results if the network is busier at certain times of the day.
 
@@ -176,34 +176,33 @@ Firstly, comparing Figure~\ref{fig:good_transfer} and Figure~\ref{fig:bad_transf
 
 \begin{figure*}[t]
 \centering
-	\hspace*{30pt}
-	\begin{subfigure}{.24\linewidth}
+	\begin{subfigure}{.3\linewidth}
 	\includegraphics[width=\linewidth]{img/speed_bytes/5M.png}
 	\caption{5 Megabytes}
 	\label{speed_bytes_5M}
 	\end{subfigure}
-	\begin{subfigure}{.228\linewidth}
+	\begin{subfigure}{.3\linewidth}
 	\includegraphics[width=\linewidth]{img/speed_bytes/512M.png}
 	\caption{0.5 Gigabytes}
 	\label{speed_bytes_512M}
 	\end{subfigure}
-	\begin{subfigure}{.285\linewidth}
+	\begin{subfigure}{.3\linewidth}
 	\includegraphics[width=\linewidth]{img/speed_bytes/1G.png}
 	\caption{1 Gigabyte}
 	\label{speed_bytes_1G}
 	\end{subfigure}
-	\\
-	\begin{subfigure}{.24\linewidth}
+	% \\
+	\begin{subfigure}{.3\linewidth}
 	\includegraphics[width=\linewidth]{img/speed_bytes/1_5G.png}
 	\caption{1.5 Gigabytes}
 	\label{speed_bytes_1_5G}
 	\end{subfigure}
-	\begin{subfigure}{.24\linewidth}
+	\begin{subfigure}{.3\linewidth}
 	\includegraphics[width=\linewidth]{img/speed_bytes/2G.png}
 	\caption{2 Gigabytes}
 	\label{speed_bytes_2G}
 	\end{subfigure}
-	\begin{subfigure}{.24\linewidth}
+	\begin{subfigure}{.3\linewidth}
 	\includegraphics[width=\linewidth]{img/speed_bytes/2_4G.png}
 	\caption{2.4 Gigabytes}
 	\label{speed_bytes_2_4G}
@@ -279,9 +278,18 @@ It is not obvious that any particular protocol uses better compression for this 
 
 In a practical sense, all 5 protocols have roughly the same efficiency, where compression is less than 0.6\%, and overhead less than 5\%.
 
-Figure~\ref{fig:per_fs_speed} is probably the most straightforward graph in this paper, as it compares the speed of each protocol. Surprisingly, the only protocols that are good consistently are ftp and scp, where the newer protocols do slightly worse for all file sizes. It must be noted that the differences in speed are quite small at this scale (the graph is scaled to $10^6$). From a practical perspective, the slowest protocol only takes 7.64\% longer than the fastest (for the 2.4Gb file size).
+Figure~\ref{fig:per_fs_speed} is probably the most straightforward graph in this paper, as it compares the speed of each protocol. Surprisingly, the only protocols that are good consistently are FTP and SCP, where the newer protocols do slightly worse for all file sizes. It must be noted that the differences in speed are quite small at this scale (the graph is scaled to $10^6$). From a practical perspective, the slowest protocol takes 7.64\% longer than the fastest (for the 2.4Gb file size).
 
 \section{Conclusions}
+While transferring large datasets is not ideal, alternatives are not mature enough to remove the need completely. Cloud solutions are viable in some circumstances, but their shortcomings result in many situations where manually copying large files is unavoidable.
+
+In these cases, it is only logical to make sure that the transfer is done in the fastest and most efficient way possible. An easily-deployable testbed has been created to test a specific connection and provide data which can be used to determine the most optimized solution.
+
+This testbed was deployed on the SANReN connection between the Universities of Cape Town and the Western Cape. The traditional FTP and SCP were tested, as well as their newer counterparts, GridFTP and HPN-SCP.
+
+Tests were run during lunch hours, and early hours of the morning. The data dumps from these tests were analysed using the testbed's supplementary Jupyter notebook. It was found that although there was no significant difference between the speeds during peak and off hours. However, there were interesting artefacts in the few cases where the network was congested.
+
+It was found that the TCP-based protocols achieved very similar speeds and data efficiency. GridFTP's `UDT' mode is built on UDP, and had a higher overhead than the TCP protocols. \textit{Some more info here about GridFTP-UDT}.
 
 \section{Acknowledgements}
 This project would not have been possible without access to virtual machines at both UCT and UWC. Mr. Peter van Heusden (South African Bioinformatics Institute) was extremely available during the project period, and kindly set up a VM in the SANBI DMZ. He also granted access to the Cisco switch which allowed rules for each protocol to be configured. Mr. Heine de Jager provided access to the UCT Science DMZ, and was very accommodating under strict security protocols. He was also extremely available, and helped fix multiple issues with the GridFTP setup and firewall rules.
