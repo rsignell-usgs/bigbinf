@@ -233,27 +233,28 @@ class JobWatcher(Thread):
 		return True
 
 	def run(self):
-		try:
-			k8s_url = 'http://%s:%s' % (config.kubernetes_host, config.kubernetes_port)
-			stream = watch_pods(k8s_url, config.job_label)
-			for event in stream.iter_lines():
-				event = json.loads(event)
-				job_name = event['object']['metadata']['name']
-				job_state = event['object']['status']
-				#print json.dumps(job_state, indent=4)
+		while True:
+			try:
+				k8s_url = 'http://%s:%s' % (config.kubernetes_host, config.kubernetes_port)
+				stream = watch_pods(k8s_url, config.job_label)
+				for event in stream.iter_lines():
+					event = json.loads(event)
+					job_name = event['object']['metadata']['name']
+					job_state = event['object']['status']
+					#print json.dumps(job_state, indent=4)
 
-				if job_state['phase'] == 'Succeeded':
-					delete_pod(k8s_url, job_name)
-					job = self.running_queue.remove(job_name)
-					if job:
-						if self.has_results(job):
-							job.status = 'tar queue'
-							self.tar_queue.put(job)
-						else:
-							job.status = 'completed'
-							self.completed_queue.put(job)
-		except Exception as e:
-			print e
+					if job_state['phase'] == 'Succeeded':
+						delete_pod(k8s_url, job_name)
+						job = self.running_queue.remove(job_name)
+						if job:
+							if self.has_results(job):
+								job.status = 'tar queue'
+								self.tar_queue.put(job)
+							else:
+								job.status = 'completed'
+								self.completed_queue.put(job)
+			except Exception as e:
+				print e
 
 
 class TarScheduler(Thread):
