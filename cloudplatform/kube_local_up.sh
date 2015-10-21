@@ -17,7 +17,8 @@ echo "Starting master kube"
 # to get around this we modify the manifest and volume mount it to replace the bundled manifest.
 docker run --privileged --net=host -d -v /var/run/docker.sock:/var/run/docker.sock  \
 -v /mnt:/mnt \
-bigbinf/k8s_hyperkube:v1.0.1 /hyperkube kubelet --api-servers=http://localhost:8080 \
+ -p 5004:5004 \
+bigbinf/k8s_hyperkube:v1.0.1 /hyperkube kubelet --api-servers=http://0.0.0.0:8080 \
 --v=2 --address=0.0.0.0 --allow-privileged=true --enable-server --hostname-override=127.0.0.1 --config=/etc/kubernetes/manifests
 
 echo "Starting service proxy"

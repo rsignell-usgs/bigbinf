@@ -19,7 +19,6 @@
 				}
 			},
 			"spec": {
-				"volumes": null,
 				"containers": [
 					{
 						"name": "docker-registry",
@@ -74,6 +73,20 @@
 							{
 								"name": "docker-cache",
 								"mountPath": "/var/lib/docker"
+							}
+						],
+						"imagePullPolicy": "IfNotPresent"
+					},
+					{
+						"name": "discovery-service",
+						"image": "bigbinf/discovery-service",
+												
+						"ports": [
+							{
+								"containerPort": 5004,
+								"port": 5004,
+								"hostPort": 5004,
+								"protocol": "TCP"
 							}
 						],
 						"imagePullPolicy": "IfNotPresent"

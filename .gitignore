@@ -15,5 +15,5 @@
 *.dump
 
 # web js libraries
-cloudplatform/web_interface/bigbinf_web/static/components/*
+cloudplatform/web_interface/src/bigbinf_web/static/components/*
 

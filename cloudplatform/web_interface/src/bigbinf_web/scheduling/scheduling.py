@@ -255,6 +255,7 @@ class JobWatcher(Thread):
 								self.completed_queue.put(job)
 			except Exception as e:
 				print e
+				time.sleep(2)
 
 
 class TarScheduler(Thread):
