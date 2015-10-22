@@ -135,19 +135,30 @@ We implemented a proof of concept of the community cloud. The aim was not to foc
 
 
 \subsection{Evaluation}
-The functionality of the micro cloud is evaluated by submitting sample analysis code as a job. The analysis code searches against a genome database. We chose a database that is publicly hosted by the National Center for Biotechnology Information (NCBI), an institution dedicated to improving technologies used in genomic research \cite{pruitt2005ncbi}. The analysis code makes use of the Basic Local Alignment Search Tool (BLAST) \cite{camacho2009blast}. This tool is used by specifying a database and submitting a query containing specific search criteria. Different sized jobs are tested by increasing or decreasing the size of the query, which makes it easily scalable to different sized test cases.
+The functionality of the micro cloud is evaluated by submitting sample Bioinformatics analysis code as a job. The analysis code searches against a genome database. We chose a database that is publicly hosted by the National Center for Biotechnology Information (NCBI), an institution dedicated to improving technologies used in genomic research \cite{pruitt2005ncbi}. The analysis code makes use of the Basic Local Alignment Search Tool (BLAST) \cite{camacho2009blast}. This tool is used by specifying a database and submitting a query containing specific search criteria. The job runs successfully if the container exits and results are available for download. The results consists of a single text file output by the BLAST tool which gives details according to the query submitted. Different sized jobs are tested by increasing or decreasing the size of the query, which makes it easily scalable to different sized test cases.
 
 
-\section{Results and Findings}
+
+
+\section{Results}
+The cloud platform was tested by submitting three jobs containing analysis code as described above in evaluation. Each job tested a different sized query. After successful completion of each job the results were available for download, archived in a tar file. Each job's results contained a single text file created by the BLAST tool, which contained details about the query and the database and outputs generated based on evaluating the query with the database. The exact results output from the job do not give any insights regarding the evaluation of the cloud platform because we are testing the platform itself and not the analysis code. 
+
+\subsection{Findings}
+Docker is able to save on storage space and bandwidth with regards to caching docker images. For example if one container uses an ubuntu base image for the first time, the ubuntu image needs to be downloaded. If a second container also uses the same ubuntu image then it uses the cached copy instead of downloading the image again. This benefit comes from the layered filesystem that Docker uses. 
+The base image used in the evaluation is about 600MB in size. This should only have resulted in the first job submitted (which was using that base image) to have a longer build process. The subsequent jobs should've been built in a few seconds. This unfortunately was not the case. Every job took extremely long to move from the build queue to the ready queue. A bottleneck was found after a rigorous investigation. This bottleneck occurs between the Docker builder and the image repository. This means that building the image from the Dockerfile is indeed quick, given that the base image is already cached. The problem occurs when pushing the image to the repository. Docker appears to be pushing the entire image to the repository and spends a lot of time buffering the image to disk, before starting the upload to the repository. Poor performance with pushing a large Docker image seems to be a result of Docker implementation decisions specific to pushing an image to a remote repository. There have been issues opened on this topic on the official Docker Github repository.
+\\\\
+A change in core architecture of the cluster could fix this bottleneck. The proposed design would be to remove a single dedicated docker builder and instead make every worker node a docker builder. This would mean that the scheduling of building and running jobs would be more tightly integrated, as the image must be built on the worker node that it is scheduled to run on. This would eliminate the need for a private image repository and thus eliminate the process of pushing an image to a repository. Docker is already a dependency for every worker node to be able to run Docker containers. The only problem with this architecture is that it has to be supported by the cluster manager used. In the case of this cloud platform, Kubernetes unfortunately doesn't currently support it. 
 
 \section{Conclusions}
 
+
+
 \subsection{Future Work}
 
+\section{Acknowledgements}
+Thanks to Mr. Peter van Heusden and his colleagues (South African National Bioinformatics Institute) for enabling the evaluation of this project by providing two VMs as well as Ceph RBD storage. They were extremely helpful by providing timeous support when problems occurred. In addition, Peter also provided the analysis code used in the evaluation and helped with making the 36GB database available on the RBD storage.
 
-
-
-\bibliographystyle{ACM-Reference-Format-Journals}
+\bibliographystyle{abbrv}
 \bibliography{ref} 
 
 
