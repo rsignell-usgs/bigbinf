@@ -51,7 +51,7 @@ Another project compatible with both Amazon EC2 and Eucalyptus is CloudMan \cite
 \\\\
 We aim to provide users with a configurable environment by taking advantage of open source cloud software and Linux containers to enable efficient processing of Big Data through the use of micro clouds. The aim is to build a micro cloud platform and form a community cloud which allows sharing of data and collaboration of users between multiple micro clouds. Users can access data and submit jobs to the micro cloud by interacting with a front end web interface. Evaluation is done by deploying two micro clouds, one at UWC and one at UCT. The functionality is evaluated by uploading sample code and executing it on data which already exists on the cloud.
 \\\\
-UCT and UWC are collaborators on this project, as is UCT E-Research. Both UWC and UCT E-Research provided valuable hardware resources enabling thorough evaluation in a real world setting.
+UCT and UWC are collaborators on this project. UWC provided valuable hardware resources enabling thorough evaluation in a real world setting.
 
 \section{Background}
 Docker is built on top of Linux containers and is the main technology that we are using to build the micro cloud. To build a micro cloud platform a cluster manager is required. We look at OpenStack and Kubernetes as possible systems for a cluster manager.
@@ -80,7 +80,7 @@ Google has been using linux containers long before Docker was created. Google de
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.8]{img/microcloud_architecture}
+\includegraphics[scale=0.4]{img/microcloud_architecture}
 \caption{Micro Cloud Architecture}
 \label{fig:architecture}
 \end{figure}
@@ -95,34 +95,41 @@ In Figure \ref{fig:architecture} you already saw an overview of how components i
 
 \subsubsection{Job}
 A job describes a single instance of code uploaded for execution. 
-The micro cloud platform uses containers, more specifically Docker containers to execute code. Docker images are created with dockerfiles which specify the execution environment and what files to execute. Submitting a job requires a Dockerfile and source code to be executed, uploaded together packaged as a single tarball.  
+The micro cloud platform uses containers, more specifically Docker containers to execute code. Docker images are created with dockerfiles which specify the execution environment and what files to execute. Submitting a job requires a Dockerfile and source code to be executed, uploaded together packaged as a single tar archive.  
 
 \subsubsection{Cluster Manager}
-To create a cloud platform which makes use of containers, a framework is needed to manage containers in a cluster which performs scheduling and resource allocation. OpenStack was the first system considered for use as a container manager. After much trouble setting up the development environment it was decided that there are more suitable systems to solve the problem. Kubernetes has been chosen as the cluster manager framework for managing the micro cloud.
+To create a cloud platform which makes use of containers, a framework is needed to manage containers in a cluster which performs scheduling and resource allocation. OpenStack was the first system considered for use as a container manager. After much trouble setting up the development environment it was decided that there are more suitable systems to solve the problem. Kubernetes has been chosen as the cluster manager framework for managing the micro cloud. 
 
 \subsubsection{Docker Images}
 A dedicated docker-in-docker container is run which is used to build docker images from dockerfiles. The image is then pushed to a private docker repository which can be accessed by any node in the cluster. The docker image is pulled by a worker node when the job is assigned to that worker node.
 
 \subsubsection{Scheduler}
-The default scheduler relies on a first-in-first-out (FIFO) queue to schedule jobs. There are two parts to the scheduler. The first part schedules new jobs' images to be built from the Dockerfiles. The second part schedules the jobs to be executed on one of the worker nodes.
+The default scheduler relies on first-in-first-out (FIFO) queues to schedule jobs. There are 3 FIFO queues: a build queue where dockerfiles are queued for the building process, a ready queue where Docker images are ready to be run, and an archiving queue where jobs are queued to have their results archived for downloading. The scheduler keeps track of running jobs using a list rather than a FIFO queue because running jobs are asynchronous. This means for example that job B can be started after job A and still still complete before job A. The number of concurrent jobs running is dependent on the number of worker nodes. Another two lists are used to keep track of completed jobs, one list for completed jobs with no results and another list for completed jobs with results ready to be downloaded. The completed jobs with no results queue is relevant because it is possible to directly interact with remote storage from within the container without using the cluster provided storage. An example of this is using object storage which isn't suited for mounting as a filesystem.
 
 \subsubsection{Storage}
-The cluster at UWC makes use of Ceph storage which can be accessed by a RADOS Block Device (RBD). Kubernetes already provides support for mounting an RBD as a storage volume in a container.
+The cluster at UWC makes use of Ceph storage which can be accessed by a RADOS Block Device (RBD). Kubernetes provides support for mounting an RBD as a storage volume in a container. However due to difficulties getting Kubernetes to properly work with RBD during development, a different approach was taken. An RBD was mounted on the worker node outside of kubernetes. It was then treated as a normal filesystem and mounted as host storage in the container. Using RBD in this way is still beneficial compared to using plain host storage as raw data doesn't have to be copied to each VM, which is infeasible given the size of most raw data in Bioinformatics (The raw data used during the evaluation of the system is 36GB).
 
 \subsubsection{Web Interface}
 The backend web interface is implemented using the python flask web framework. It is a minimalist framework which allows for rapid development of web interfaces. 
-The front end web interface is implemented using Angularjs to create a single page application. 
+The front end web interface is implemented using Angularjs to create a single page application. The website provides a form to submit a job by uploading a tar archive. Two text boxes are provided to allow the user to specify mount points (by means of an absolute file system path such as "/db" and "/results") for the raw data and results folder inside the container. Below the form is a list of jobs which shows each job's current status. This list is updated by polling the server every few seconds. If a job is complete and the results folder contains files then the user will be able to download the results as a tar archive. On a different web page (titled "regions") is a list of all available micro clouds. The user can click on a region to navigate to a different micro cloud.
 
 \subsubsection{Community Cloud}
-A community cloud is formed by implementing a centralised discovery service. This improves scalability compared to a full mesh network between micro clouds.
+A community cloud is formed by implementing a centralised discovery service. This improves scalability compared to a full mesh network between micro clouds. The discovery service gives a list of connected micro clouds with their url (either an IP address or a domain) along with the name of the micro cloud. The discovery service has to be manually configured by adding a micro cloud's details to a configuration file.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{img/communitycloud}
+\caption{Community Cloud Architecture}
+\label{fig:architecture}
+\end{figure}
 
 
 \subsection{Constraints}
-Micro cloud deployments for evaluation are limited to UWC and UCT E-Research. The evaluation is limited to one community cloud containing two micro clouds.
+Micro cloud deployments for evaluation are limited to UWC. The evaluation is limited to one community cloud containing two micro clouds. Each micro cloud was deployed on a single virtual machine (VM) as a single node cluster. Each VM has 1GB RAM, a single cpu, and 10GB of storage. Two 100Gb RBDs were provided, one for raw data and one for storing results. Due to both clusters residing on the same network, both clusters made use of the same storage. This wouldn't be the case if each cluster was deployed at a different institution, but for the purposes of the evaluation it isn't important.
 
 \subsection{Software Engineering}
 
-We implemented a proof of concept of the community cloud. The aim was not to focus on software engineering methodologies. However to allow for reproducibility the source code is stored in a Git repository hosted on Github (Git is a version control system). 
+We implemented a proof of concept of the community cloud. The aim was not to focus on software engineering methodologies. However to allow for reproducibility the source code is stored in a Git repository hosted on Github (Git is a version control system). All the components are containerized which means a cluster can easily be deployed by running a few docker containers. This allows greater portability and reproducibility. 
 
 
 
@@ -131,10 +138,11 @@ We implemented a proof of concept of the community cloud. The aim was not to foc
 The functionality of the micro cloud is evaluated by submitting sample analysis code as a job. The analysis code searches against a genome database. We chose a database that is publicly hosted by the National Center for Biotechnology Information (NCBI), an institution dedicated to improving technologies used in genomic research \cite{pruitt2005ncbi}. The analysis code makes use of the Basic Local Alignment Search Tool (BLAST) \cite{camacho2009blast}. This tool is used by specifying a database and submitting a query containing specific search criteria. Different sized jobs are tested by increasing or decreasing the size of the query, which makes it easily scalable to different sized test cases.
 
 
+\section{Results and Findings}
 
+\section{Conclusions}
 
-
-
+\subsection{Future Work}
 
 
 
