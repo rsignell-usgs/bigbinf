@@ -3,6 +3,7 @@
 \usepackage{hyperref}
 \usepackage{subcaption}
 \usepackage{booktabs}
+\usepackage{algorithm}
 \usepackage{algorithmic}
 
 \begin{document}
@@ -27,7 +28,7 @@ For more information, please see \url{pubs.cs.uct.ac.za}
 \maketitle
 \begin{abstract}
 Data transfer remains a necessity for research in Bioinformatics, and alternate solutions like cloud computing have not removed the need completely. When transferring large files, there are many transfer protocols to choose from. In this paper, a lightweight testbed is described and used to test SCP, FTP, HPN-SCP and GridFTP between the Universities of Cape Town and the Western Cape.
-
+test
 A comparison of GridFTP's `UDT' mode and it's default mode is also done using the same testbed.
 
 Investigation is done into how the transfer protocols operate on a congested network. Speed and data efficiency are then compared on a stable network to determine if any one protocol is significantly better than the rest.
@@ -42,7 +43,7 @@ There are a plethora of sequence file formats whose efficiency depends on the ki
 
 Researchers often require access to the data warehouses to transfer the sequences they need. Luckily, these locations are often connected by massive data pipes like National Research and Education Networks (NREN's). For example, South African universities are connected by the South African National Research Network~\cite{sanren} which runs at 10Gbps. Unfortunately, standard transfer protocols like FTP and SSH were not designed for use on high-throughput networks, and alternate protocols must be used to avoid bottlenecks.
 
-Some proprietary transfer protocols are widely used in practice \emdash for example, the \textit{fasp} protocol by the US based company AsperaSoft. Based on UDP, this protocol eliminates the latency issues seen with TCP, and provides transfer bandwidth of up to 10 gigabits per second~\cite{fan2010petabytes}.
+Some proprietary transfer protocols are widely used in practice - for example, the \textit{fasp} protocol by the US based company AsperaSoft. Based on UDP, this protocol eliminates the latency issues seen with TCP, and provides transfer bandwidth of up to 10 gigabits per second~\cite{fan2010petabytes}.
 
 There have been some attempts to avoid data transfer altogether. This means processing data remotely, and there has been an explorative push towards cloud solutions from companies such as Amazon and Google~\cite{baker2010next}. Unfortunately, even though cloud data centres have plenty of cheap storage, the transfer bottleneck remains as researchers must still upload their raw data to the cloud data centres every time they run a new experiment. Some researchers have even resorted to mailing hard drives~\cite{baker2010next}.
 
@@ -133,7 +134,7 @@ The measures were chosen by practicality. For example, behind the scenes informa
 
 The tests were scheduled using the `cron' daemon. Each job would call a script that looks like the following.
 
-\begin{algorithm}
+\begin{algorithm}[h]
 \caption{Script to run one round of tests.}
 	\begin{algorithmic}
 		\STATE SIZES = 5M 512M 1G 1\_5G 2G 2\_4G
@@ -153,14 +154,14 @@ Even though the network could theoretically support up to 1Gbit/s, the speeds ac
 \subsection{Network stability}
 Although each transfer in one test runs in the same environment, the time that tests are run can influence the results if the network is busier at certain times of the day.
 
-\begin{figure}
+\begin{figure}[h]
 \centering
 \includegraphics[width=.8\linewidth]{img/peak.png}
 \caption{Aggregated comparison of speed during peak and off hours.}
 \label{fig:peak}
 \end{figure}
 
-\begin{table}
+\begin{table}[h]
 \centering
 	\begin{tabular}{lr}
 	\toprule
@@ -206,8 +207,7 @@ The UDP-based UDT mode of GridFTP changes in a more obvious way. Note that the a
 Because the differences in Figure~\ref{fig:peak} are not statistically significant, all tests are used for the following analysis.
 
 \subsection{Speed and Data Efficiency}
-
-\begin{figure}[h]
+\begin{figure}
 \centering
 	\includegraphics[width=.8\linewidth]{img/time.png}
 \caption{Total average time to transfer a 2.4GiB file. Smaller values are better.}
@@ -259,27 +259,27 @@ Figure~\ref{fig:aggregate} is a comparison between all five protocols measuring 
 
 The corresponding numerical data (including upstream packets) can be seen in Table~\ref{tab:aggregate}.
 
-\begin{figure}[h]
+\begin{figure*}
 \centering
-	\begin{subfigure}{.4\textwidth}
+	\begin{subfigure}{.45\textwidth}
 	\includegraphics[width=\textwidth]{img/per_filesize/speed.png}
 	\caption{Speed}
 	\label{fig:per_fs_speed}
 	\end{subfigure}
-	\begin{subfigure}{.4\textwidth}
+	\begin{subfigure}{.45\textwidth}
 	\includegraphics[width=\textwidth]{img/per_filesize/data.png}
 	\caption{Data Efficiency}
 	\label{fig:per_fs_data}
 	\end{subfigure}
 \caption{Metrics calculated per file size}
 \label{fig:per_fs}
-\end{figure}
+\end{figure*}
 
 This same data can be represented as a function of filesize. In this case, Figure~\ref{fig:per_fs_speed} compares the speed of each protocol for all tested file sizes. Surprisingly, the only protocols that are good consistently are SCP and HPN-SCP. GridFTP is consistently average, while FTP GridFTP-UDT change drastically with file size. 
 
 It must be noted that the differences in speed are quite small at this scale (the graph is scaled to $10^6$).
 
-Figure~\ref{fig:per_fs_data} shows the transferred data as a ratio of the file's size. A ratio of 100\% would mean that the total number of bytes transferred (both up and downsteam) is exactly the file size. Ratios larger and smaller than this are more and less data efficient respectively.
+Figure~\ref{fig:per_fs_data} shows the transferred data as a ratio of the file's size. A ratio of 100\% would mean that the total number of bytes transferred (both up and downstream) is exactly the file size. Ratios larger and smaller than this are more and less data efficient respectively.
 
 Here, one can see that GridFTP, HPN-SCP and SCP all achieve some level of optimization, as they sit between 99.5\% and 100\%. FTP sits close to, but just above this line between 100\% and 100.5\%. GridFTP-UDT is an outlier in this case, and clearly sends much more data than the TCP-based protocols.
 
