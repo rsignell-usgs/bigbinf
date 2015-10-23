@@ -27,7 +27,7 @@ Brendan D. Ball\\
 
 \maketitle
 \begin{abstract}
-[Abstract]
+Processing Big Data in Bioinformatics is often made difficult with the need to download the entire data set. The proposed solution is to create a micro cloud platform which would be deployed at various institutions. This micro cloud should allow users to process the data without having to download it. Results are normally miniscule in size compared to the raw data, which makes it easy to download. A community cloud is formed by connecting micro clouds using a discovery service. A proof of concept is implemented and evaluated using sample Bioinformatics analysis code.
 \end{abstract}
 \keywords{Big Data; BioInformatics; Clouds}
 
@@ -49,7 +49,7 @@ Both virtualisation and containerization requires every instance to be configure
 \\\\
 Another project compatible with both Amazon EC2 and Eucalyptus is CloudMan \cite{afgan2015building}. CloudMan is designed as a workbench which manages cloud resources. A workbench relies on a pre-configured environment on which to execute code. It is aimed at improving biomedical data anaylsis and fully integrates with the Galaxy framework, a biomedical research platform. This cloud solution does not provide a user configurable execution environment as it relies on Galaxy tools to perform analyses. 
 \\\\
-We aim to provide users with a configurable environment by taking advantage of open source cloud software and Linux containers to enable efficient processing of Big Data through the use of micro clouds. The aim is to build a micro cloud platform and form a community cloud which allows sharing of data and collaboration of users between multiple micro clouds. Users can access data and submit jobs to the micro cloud by interacting with a front end web interface. Evaluation is done by deploying two micro clouds, one at UWC and one at UCT. The functionality is evaluated by uploading sample code and executing it on data which already exists on the cloud.
+We aim to provide users with a configurable environment by taking advantage of open source cloud software and Linux containers to enable efficient processing of Big Data through the use of micro clouds. The aim is to build a micro cloud platform and form a community cloud which allows sharing of data and collaboration of users between multiple micro clouds. Users can access data and submit jobs to the micro cloud by interacting with a front end web interface. Evaluation is done by deploying two micro clouds at UWC. The functionality is evaluated by uploading sample code and executing it on data which already exists on the cloud.
 \\\\
 UCT and UWC are collaborators on this project. UWC provided valuable hardware resources enabling thorough evaluation in a real world setting.
 
@@ -78,17 +78,16 @@ Google has been using linux containers long before Docker was created. Google de
 
 \section{Design And Implementation}
 
-\begin{figure}
-\centering
-\includegraphics[scale=0.4]{img/microcloud_architecture}
-\caption{Micro Cloud Architecture}
-\label{fig:architecture}
-\end{figure}
 
 Cloud infrastructure consists of one or more clusters. A cluster is a collection of servers (nodes). Data storage is also part of cloud infrastructure, but is typically seperated from computing nodes and accessed over the network. Our platform consists of the following components: a web interface, a scheduler, an image builder and image repository, a cluster manager (the master node), multiple worker nodes, and a storage interface which allows reading from and writing to persistent storage. Figure \ref{fig:architecture} shows the connection between components.
 \\\\
 The functionality of the platform is of primary concern, thus user interface design is not considered and is outside the scope of this project. 
 
+\begin{figure}
+\includegraphics[width=8cm]{img/microcloud_architecture}
+\caption{Micro Cloud Architecture. This diagram shows the interaction between components of the cloud framework.}
+\label{fig:architecture}
+\end{figure}
 
 \subsection{System Architecture}
 In Figure \ref{fig:architecture} you already saw an overview of how components interact. This section gives implementation specific details for every component.
@@ -114,13 +113,13 @@ The backend web interface is implemented using the python flask web framework. I
 The front end web interface is implemented using Angularjs to create a single page application. The website provides a form to submit a job by uploading a tar archive. Two text boxes are provided to allow the user to specify mount points (by means of an absolute file system path such as "/db" and "/results") for the raw data and results folder inside the container. Below the form is a list of jobs which shows each job's current status. This list is updated by polling the server every few seconds. If a job is complete and the results folder contains files then the user will be able to download the results as a tar archive. On a different web page (titled "regions") is a list of all available micro clouds. The user can click on a region to navigate to a different micro cloud.
 
 \subsubsection{Community Cloud}
-A community cloud is formed by implementing a centralised discovery service. This improves scalability compared to a full mesh network between micro clouds. The discovery service gives a list of connected micro clouds with their url (either an IP address or a domain) along with the name of the micro cloud. The discovery service has to be manually configured by adding a micro cloud's details to a configuration file.
+A community cloud is formed by implementing a centralised discovery service. This improves scalability compared to a full mesh network between micro clouds. Figure \ref{fig:discovery} depicts how micro clouds are connected with the discovery service. The discovery service gives a list of connected micro clouds with their url (either an IP address or a domain) along with the name of the micro cloud. The discovery service has to be manually configured by adding a micro cloud's details to a configuration file.
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.3]{img/communitycloud}
-\caption{Community Cloud Architecture}
-\label{fig:architecture}
+\caption{Community Cloud Architecture. This diagram shows how micro clouds are connected using a discovery service.}
+\label{fig:discovery}
 \end{figure}
 
 
@@ -147,17 +146,21 @@ The cloud platform was tested by submitting three jobs containing analysis code 
 Docker is able to save on storage space and bandwidth with regards to caching docker images. For example if one container uses an ubuntu base image for the first time, the ubuntu image needs to be downloaded. If a second container also uses the same ubuntu image then it uses the cached copy instead of downloading the image again. This benefit comes from the layered filesystem that Docker uses. 
 The base image used in the evaluation is about 600MB in size. This should only have resulted in the first job submitted (which was using that base image) to have a longer build process. The subsequent jobs should've been built in a few seconds. This unfortunately was not the case. Every job took extremely long to move from the build queue to the ready queue. A bottleneck was found after a rigorous investigation. This bottleneck occurs between the Docker builder and the image repository. This means that building the image from the Dockerfile is indeed quick, given that the base image is already cached. The problem occurs when pushing the image to the repository. Docker appears to be pushing the entire image to the repository and spends a lot of time buffering the image to disk, before starting the upload to the repository. Poor performance with pushing a large Docker image seems to be a result of Docker implementation decisions specific to pushing an image to a remote repository. There have been issues opened on this topic on the official Docker Github repository.
 \\\\
-A change in core architecture of the cluster could fix this bottleneck. The proposed design would be to remove a single dedicated docker builder and instead make every worker node a docker builder. This would mean that the scheduling of building and running jobs would be more tightly integrated, as the image must be built on the worker node that it is scheduled to run on. This would eliminate the need for a private image repository and thus eliminate the process of pushing an image to a repository. Docker is already a dependency for every worker node to be able to run Docker containers. The only problem with this architecture is that it has to be supported by the cluster manager used. In the case of this cloud platform, Kubernetes unfortunately doesn't currently support it. 
+A change in core architecture of the cluster could fix this bottleneck. The proposed design would be to remove the single dedicated docker builder and instead make every worker node a docker builder. This would mean that the scheduling of building and running jobs would be more tightly integrated, as the image must be built on the worker node that it is scheduled to run on. This would eliminate the need for a private image repository and thus eliminate the process of pushing an image to a repository. Docker is already a dependency for every worker node to be able to run Docker containers. The only problem with this architecture is that it has to be supported by the cluster manager used. In the case of this cloud platform, Kubernetes unfortunately doesn't currently support it. 
 
 \section{Conclusions}
-
-
+The micro cloud platform implemented is only a proof of concept and requires much more work to be considered ready for deployment. Only the core functionality exists, which is submitting a job that is automatically built and scheduled onto a worker node, and allows downloading the results once the job is complete. It has proved that using Docker containers as a lightweight alternative to virtual machines is a good way to run jobs in an isolated environment, while making the execution environment flexible and user configurable. This is important as it does not restrict a user to a limited set of configured tools, and is thus more maintainable because the administrator is not required to keep the tools up to date. A user configurable environment does not mean that it is time consuming, because Dockerfiles allow re-using a specific environment and simply adding to it the extra requirements. The public Docker repository allows people to share their configured environment created by a Dockerfile. 
+\\\\
+While Docker allows sharing of configured execution environments, sharing micro cloud deployments between institutions is the real focus. The discovery service creates a loosely coupled community cloud. It allows the user to see a list of the connected micro clouds and choose to redirect to a different micro cloud. This is simple but effective in promoting collaboration between micro clouds.
 
 \subsection{Future Work}
+The micro cloud platform provides basic functionality, but entirely neglects aspects such as security. The discovery service needs to be extended to include a central authentication system which allows users from any micro cloud to login and use any other connected micro cloud. Security would also include managing access to raw data. There might be privacy concerns with certain data and more granular access control to specific data would be required to meet security standards.
+\\\\
+There is also the issue of the docker builder bottleneck. The proposed architecture change discussed in the findings would fix this issue, however implementing this architecture would mean adding core functionality to the Kubernetes framework itself. This would not be an easy task, but would be well worth the effort. It is also possible that the Kubernetes team might add this functionality in the future, as kubernetes is still new and limited in functionality. The alternative would be to test other container manager frameworks to find a cluster manager that is better equipped compared to Kubernetes.
 
 \section{Acknowledgements}
 Thanks to Mr. Peter van Heusden and his colleagues (South African National Bioinformatics Institute) for enabling the evaluation of this project by providing two VMs as well as Ceph RBD storage. They were extremely helpful by providing timeous support when problems occurred. In addition, Peter also provided the analysis code used in the evaluation and helped with making the 36GB database available on the RBD storage.
-
+\\
 \bibliographystyle{abbrv}
 \bibliography{ref} 
 
