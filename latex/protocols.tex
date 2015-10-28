@@ -7,7 +7,7 @@
 \usepackage{algorithmic}
 
 \begin{document}
-\title{Transferring Big Data in Bioinformatics}
+\title{Determining the optimal protocols for\\transfer of large data files}
 
 \numberofauthors{1}
 \author{
@@ -27,52 +27,62 @@ For more information, please see \url{pubs.cs.uct.ac.za}
 
 \maketitle
 \begin{abstract}
-Data transfer remains a necessity for research in Bioinformatics, and alternate solutions like cloud computing have not removed the need completely. When transferring large files, there are many transfer protocols to choose from. In this paper, a lightweight testbed is described and used to test SCP, FTP, HPN-SCP and GridFTP between the Universities of Cape Town and the Western Cape.
-test
-A comparison of GridFTP's `UDT' mode and it's default mode is also done using the same testbed.
+	Transfer of large data files remains a necessity for scientific research, including Bioinformatics, despite alternate solutions like cloud computing. When transferring large files, there are many transfer protocols to choose from. In this paper, a lightweight testbed is developed and used to test the SCP, FTP, HPN-SCP and GridFTP protocols for transfer of large files between the Universities of Cape Town and the Western Cape.
+A comparison of GridFTP's `UDT' mode (built on UDP) and its default mode is also done using the same testbed.
 
-Investigation is done into how the transfer protocols operate on a congested network. Speed and data efficiency are then compared on a stable network to determine if any one protocol is significantly better than the rest.
+We investigate the effect of a congested network on transfers. Speed and data efficiency are compared on a stable network to determine if any one protocol is significantly better than the rest.
+
+We find that for network speeds of around 200Mbit/s, the protocols achieve very similar speeds. The TCP based protocols achieved very similar efficiency, while GridFTP in UDT mode had much higher overhead.
 \end{abstract}
 
 \section{Introduction}
-Next generation sequencing has resulted in a massive increase in the size of bioinformatics datasets, which can be tens of gigabytes in size~\cite{deorowicz2011compression}. Sequencing technologies like SOLiD provide much higher data output at a cheaper cost~\cite{shendure2008next}, which creates challenges in data storage, transfer and access. In fact, the cost of storing a byte has been higher than sequencing a base pair since before 2010~\cite{baker2010next}.
+The size of data sets is increasing rapidly - this is the era of `Big Data'~\cite{manyika2011big}. One example is in Bioinformatics, where next generation sequencing has resulted in a massive increase in the size of raw data, which can be tens of gigabytes in size~\cite{deorowicz2011compression}. Genome sequencing technologies like SOLiD provide much higher data output at a cheaper cost~\cite{shendure2008next}, which creates challenges in data storage, transfer and access. In fact, the cost of storing a byte has been higher than sequencing a base pair since before 2010~\cite{baker2010next}.
 
 Generally, sequence data is stored in a data warehouse. Storing this information for long periods of time requires the data to be structured efficiently in order to save space and to allow it to be transferred efficiently.
-
 There are a plethora of sequence file formats whose efficiency depends on the kind of data stored. Two of the most popular are FASTQ, which stores aggregated reads along with the quality of each DNA base pair~\cite{cock2010sanger}, and BAM, the binary, compressed version of the Sequence Alignment Map (SAM) format~\cite{SAMspec}.
 
-Researchers often require access to the data warehouses to transfer the sequences they need. Luckily, these locations are often connected by massive data pipes like National Research and Education Networks (NREN's). For example, South African universities are connected by the South African National Research Network~\cite{sanren} which runs at 10Gbps. Unfortunately, standard transfer protocols like FTP and SSH were not designed for use on high-throughput networks, and alternate protocols must be used to avoid bottlenecks.
+As researchers require access to data warehouses to transfer the sequences they need for local analysis, these locations are often connected by massive data pipes like National Research and Education Networks (NREN's)~\cite{sanren}~\cite{van2011unlocking}. For example, South African universities are connected by the South African National Research Network which runs at 10Gbps. Unfortunately, standard transfer protocols like FTP~\cite{venkatachalam2007openssh} and SSH~\cite{venkatachalam2007openssh} were not designed for use on high-throughput networks, and alternate protocols must be used to avoid bottlenecks. However, it is not always clear which is the most suitable protocol for transfer of a particular file type between two end points.
 
 Some proprietary transfer protocols are widely used in practice - for example, the \textit{fasp} protocol by the US based company AsperaSoft. Based on UDP, this protocol eliminates the latency issues seen with TCP, and provides transfer bandwidth of up to 10 gigabits per second~\cite{fan2010petabytes}.
 
 There have been some attempts to avoid data transfer altogether. This means processing data remotely, and there has been an explorative push towards cloud solutions from companies such as Amazon and Google~\cite{baker2010next}. Unfortunately, even though cloud data centres have plenty of cheap storage, the transfer bottleneck remains as researchers must still upload their raw data to the cloud data centres every time they run a new experiment. Some researchers have even resorted to mailing hard drives~\cite{baker2010next}.
-
 There are also security, privacy and ethical concerns with outsourcing processing power to other companies, as sequenced DNA data is often highly sensitive information~\cite{marx2013biology}.
 
-Although it would be ideal for researchers if this reliance on data transfer was removed, the current solutions do not provide good enough answers at every scale. Therefore, transferring big data is still a necessary evil for the time being.
-
+Although it would be ideal for researchers if this reliance on data transfer was removed, the current solutions do not provide good enough answers at every scale. Therefore, transferring big data is still necessary.
 In situations where data \textit{must} be transferred, it stands to reason that the transfer should happen in the most efficient way.
 
-In this work, we construct a testbed which can be deployed on a network to test various transfer protocols. The testbed is outlined, and then used to test SCP, FTP, GridFTP and HPN-SCP. These are the most popular protocols for file transfer in the field, perhaps with the exception of AsperaSoft's \textit{fasp}, which is non-free. 
+In this work, we construct a testbed which can be deployed on a network to test various transfer protocols. The testbed is outlined, and then used to test SCP, FTP, GridFTP~\cite{allcock2005globus} and HPN-SCP~\cite{rapier2008high}. 
 
-In order to test the protocols in a relevant environment, the tests are run between the University of Cape Town (UCT) and the University of the Western Cape (UWC) which are connected via SANReN.
+In order to test the protocols in a relevant environment, tests are run between the University of Cape Town (UCT) and the University of the Western Cape (UWC) which are connected via SANReN.
 
-\section{Methods}
-A testbed is created to measure speed, data efficiency and packet size of specific transfer protocols. Transfers are run and information about them is captured and saved. These logs are then analysed and displayed visually. The testbed does not try to come up with the `best transfer protocol', but rather presents the information relevant to the specific environment so that the user can make decisions.
+\section{Background}
+The chosen protocols are the most popular protocols for file transfer in the field, perhaps with the exception of AsperaSoft's \textit{fasp}, which is non-free.
+
+SCP (secure copy) and FTP (file transfer protocol) come with most Unix-based systems and the binaries (\textit{scp} and \textit{sftp}) are widely available as part of the OpenSSH~\cite{openssh} project. FTP is a generic protocol outline that may have many different implementations, but these have historically been insecure~\cite{bonachea2001safetp}. OpenSSH implements its own sftp-server program which is built on top of its own ssh-transport protocol~\cite{venkatachalam2007openssh}. This allows for secure communications using current cryptographic techniques. This protocol makes use of a control channel (to send administrative messages between client and server) and a data channel (to actually transport the data). This approach of using multiple connections enables some additional features, for example, pausing and resuming transfers.
+
+SCP is built directly on top of the SSH (secure shell) stack. In fact, when the \textit{scp} binary is invoked, the \textit{ssh} program is run with specific arguments. Because this abstraction removes the need to remember a list of command flags, SCP is arguably the most convenient transfer program to use. This simplicity also has drawbacks however, as SCP lacks the ability to pause and resume transfers.
+
+One improvement that OpenSSH has made is in compression. By default, transfers via SCP and FTP will be compressed using methods from the \textit{zlib} library~\cite{gailly2004zlib}, but the compression algorithm can be varied, as it is negotiated during the initial key exchange~\cite{miller2007security}.
+
+High Performance SSH (HPN-SSH) is a set of patches to OpenSSH which removes bottlenecks. It has not been implemented into OpenSSH for various reasons (there tends to be a certain amount of politics around large open source projects), but is still widely used in large data centers at big companies like Google, as well as NASA and the military~\cite{rapierpolitics}.
+
+GridFTP is an example of `grid computing', which is defined by Foster and Kesselman as the emerging computational and networking infrastructure that is designed to provide pervasive, uniform and reliable access to data, computational, and human resources distributed over wide area environments~\cite{foster}. GridFTP uses FTP as a base to provide a security infrastructure, resource management services, job management and information services~\cite{allcock2001secure}. It also provides features like data `striping', which allows a transfer to be split across multiple hosts, potentially combining their bandwidths.
+
+GridFTP also provides two modes of general operation. The default mode operates on top of the TCP stack, but there is a newer `UDT' mode which is based on UDP\@. This mode aims to overcome congestion control bottlenecks found in TCP\@. 
+
+\section{Design and Implementation}
+A testbed is created to measure speed, data efficiency and packet size of specific transfer protocols. Transfers are run and information about them is captured and saved. These logs are then analysed and displayed visually. The testbed does not output the `best transfer protocol', but rather presents the information relevant to the specific environment so that the user can make and informed decision.
 
 \subsection{Testbed Design}
-The testbed has been designed to be simple, modular and extensible. A simple Python system is sufficient, because almost all of the work transferring and logging the data is done by external programs. The testbed simply acts as a mediator between them.
+The testbed is designed to be simple, modular and extensible. A simple Python system is sufficient, because almost all of the work transferring and logging the data is done by external programs. The testbed simply acts as a mediator between them.
 
 The data dump format is a simple json template, and can be parsed by the separate analysis code.
 
-The protocols to be tested are specified in a config file, and have no imposed limits. As long as the correct binaries are installed on the machine, a user could test any transfer program as long as they know the command line arguments.
+The protocols to be tested are specified in a config file, and have no limits imposed. As long as the correct binaries are installed on the machine, a user could test any transfer program as long as they know the command line arguments.
 
-The testbed itself is designed to have minimal dependencies, while the optional analysis notebook makes heavy use of Python data science packages.
+The testbed itself is designed to have minimal dependencies, while the optional Jupyter notebook~\cite{jupyter} (which can be used for analysis) makes heavy use of Python data science packages.
 
 The logging mechanism makes use of the `tcpdump' program~\cite{tcpdump}, which comes with most Unix-like systems. As depicted in Figure~\ref{fig:copy_example}, it watches a network interface (e.g.\ eth0) and logs information about packets which pass through. The program is run while each transfer is in progress, and the output is filtered to include only packets sent between Host 1 and Host 2. This output is used as the raw data for analysis.
-
-The Python program for running the file transfers has been written to accept: the name of the network interface, the remote hostname (Host 2), the path of the file on Host 2, and a local path to copy the file to.
-It then resolves the IPs of each host, and for each protocol, runs a transfer in isolation. 
 
 \begin{figure}[t]
 \centering
@@ -80,20 +90,22 @@ It then resolves the IPs of each host, and for each protocol, runs a transfer in
 \caption{The sequence of actions performed by the testbed. This is repeated once for each protocol.\label{fig:testbed_sequence}}
 \end{figure}
 
+The Python program for running the file transfers accepts: the name of the network interface, the remote hostname (Host 2), the path of the file on Host 2, and a local path to copy the file to.
+It then resolves the IPs of each host, and for each protocol, runs a transfer in isolation. 
 As shown in Figure~\ref{fig:testbed_sequence}, it spawns a tcpdump subprocess which runs for precisely as long as the copy runs. The tcpdump program is started with filters, so that only traffic between the two hosts is captured. It then saves the output in a file.
-
 This allows for a controlled environment, because tcpdump only captures while the copy is running, no other packets are included in the logs. Also, the copies are run programmatically and consecutively. Successive copies are not started until both the tcpdump and protocol processes have been closed, and the log file has been written. This means that they are all run in an identical (within reason) environment, but at the same time do not interfere with each other.
 
 This test process is run multiple times for statistical reasons, generating multiple log files.
 
-A Jupyter notebook~\cite{jupyter} is provided to read in the dump files. This information can be aggregated, and then used to calculate metrics and display graphs. These include plots which are computed by looking at the time of each packet, and the size of its payload.
+Using the Jupyter notebook, this information can be aggregated and used to calculate metrics and display graphs. These include plots which are computed by looking at the time of each packet, and the size of its payload.
 
-The testbed was simultaneously tested between various locations. During early stages, tests were run between lab computers at UCT. These were naturally on the same LAN. This meant that there was no interference or issues with stability, but the network was capped at 100Mbit/s. Because all the protocols could easily reach this speed, the results from different tests didn't reveal much.
 
-The testbed was then deployed between a home network in Cape Town, and a Virtual Private Server in Amsterdam. The speed was again capped, but this enabled testing under unstable conditions, and the testbed had to be made more robust.
+\subsection{Evaluation}
+The testbed is simultaneously tested between various locations. During early stages, tests are run between lab computers at UCT. These are naturally on the same LAN. This means that there is no interference or issues with stability, but the network is capped at 100Mbit/s. Because all the protocols could easily reach this speed, the results from different tests don't reveal much.
 
-\subsection{Test Case between UCT and UWC}
-The testbed is deployed between two hosts to test that the binaries for each transfer protocol are set up correctly (both on the client and server). Once ready, a full set of tests is run between them.
+The testbed is then deployed between a home network in Cape Town, and a Virtual Private Server in Amsterdam. The speed is again capped, but this enabled testing under unstable conditions, and the testbed had to be made more robust.
+
+The testbed is finally deployed between two hosts to test that the binaries for each transfer protocol are set up correctly (both on the client and server). Once ready, a full set of tests was run between them.
 
 \begin{figure}[t]
 \centering
@@ -116,23 +128,23 @@ The testing environment is kept as stable as possible during tests, and multiple
 \end{figure}
 For each transfer, a copy is initiated from Host 1. A file from Host 2 is transferred to Host 1 using the particular protocol (see Figure~\ref{fig:copy_example}).
 
-The tests are run with 6 files. These are one small 5MiB file, and five files between 0.5GiB and 2.4GiB in 0.5GiB increments. These were all generated by reading chunks of a 2.4 GB gzipped sequence alignment file. Even though the protocols are agnostic of file format (they treat everything as binary), the sequence alignment file is a typical dataset that researchers would need to transfer.
+The tests are run with 6 files: one small 5MiB file and five files between 0.5GiB and 2.4GiB in 0.5GiB increments. These were all generated by reading chunks of a 2.4 GB gzipped sequence alignment file. Even though the protocols are agnostic to file format (they treat everything as binary), the sequence alignment file is a typical dataset that researchers transfer.
 
 \subsection{Protocols}
-The OpenSSH~\cite{openssh} implementations of FTP (sftp) and SSH (scp) are tested. High Performance SSH (HPN-SSH) is a set of patches to OpenSSH which removes bottlenecks~\cite{rapier2008high}. The scp binary from a patched, portable version of OpenSSH is tested for HPN\@. This is installed alongside the original so that both binaries are available.
+The \textit{scp} binary from a patched, portable version of OpenSSH is tested for HPN\@. This is installed alongside the original so that both binaries are available.
 
-The `lite' version of GridFTP~\cite{allcock2005globus} is used. This means that authentication is done via ssh as opposed a previously-configured certificate authority. This makes no difference to the file transfer itself, but it prevents unnecessary configuration of the testbed which can be quite complex in the case of `full' GridFTP~\cite{gridftplite}.
+The `lite' version of GridFTP is used. In this version, authentication is done via ssh as opposed a previously-configured certificate authority. This makes no difference to the file transfer itself, but it prevents unnecessary configuration of the testbed which can be quite complex in the case of `full' GridFTP~\cite{gridftplite}.
 
-GridFTP supports data `striping', which allows a transfer to be split across multiple hosts, potentially combining their bandwidths. This feature is not used, because the number of available nodes can vary greatly between configurations, and it would make comparisons with single-stream transfers unrealistic.
+Although Bresnahan et al.\ found that GridFTP's UDT mode outperformed the TCP mode~\cite{bresnahan2009udt}, both modes are still tested to see if their conclusions hold for this specific NREN as well. Note that despite it's name, the tcpdump program will capture UDP packets.
 
-GridFTP also provides two modes of general operation. The default mode operates on top of the TCP stack, but there is a newer `UDT' mode which is based on UDP\@. This mode aims to overcome congestion control bottlenecks found in TCP\@. Although Bresnahan et al.\ found that the UDT mode outperformed the TCP mode~\cite{bresnahan2009udt}, both modes are still tested. Note that despite it's name, the tcpdump program will capture UDP packets.
+We do not use the data striping features in GridFTP, because the number of available nodes can vary greatly between configurations, thus making comparisons with single-stream transfers unrealistic.
 
 \subsection{Data collection}
-Results were collected by running the testbed at 13h00 and 3h00 each day, for a period of two weeks. For some of the tests, all the collected data (including information about each packet) was stored to disk. Because this is very space intensive (a single test run could generate multiple gigabytes of dump files), most of the tests only stored their aggregated data. 
+Results were collected by running the testbed at 13h00 and 3h00 each day, for a period of two weeks. For some of the tests, all the data collected (including information about each packet) was stored to disk. Because this is very space intensive (a single test run could generate multiple gigabytes of dump files), most of the tests only stored aggregated data. 
 
-The measures were chosen by practicality. For example, behind the scenes information like window sizes is not collected, because the biggest concern for users is speed and size.
+The metrics were chosen for practicality. For example, behind-the-scenes information like window sizes was not collected, because the biggest concern for users is speed and size.
 
-The tests were scheduled using the `cron' daemon. Each job would call a script that looks like the following.
+The tests were scheduled using the `cron' daemon. Each job would call a script as in Algorithm~\ref{alg:script}.
 
 \begin{algorithm}[h]
 \caption{Script to run one round of tests.}
@@ -147,9 +159,11 @@ The tests were scheduled using the `cron' daemon. Each job would call a script t
 \label{alg:script}
 \end{algorithm}
 
+This provides plenty of data for various file sizes to be interpreted by the Jupyter notebook.
+
 \section{Results}
 
-Even though the network could theoretically support up to 1Gbit/s, the speeds achieved throughout these tests were around 200Mbit/s. Although this is not as high as hoped, it is still a massive speedup over conventional South African networks, and these speeds are still typical to the use case in the field.
+Even though the network can theoretically support up to 1Gbit/s, the speeds achieved throughout these tests were around 200Mbit/s. Although this is not as high as hoped, it is still a massive speedup over conventional South African networks, and these speeds are still typical to the use case in the field. Unfortunately, it is difficult to determine the exact location of this bottleneck because access was only available at the end points of the link, while the link itself is owned and managed by other third parties.
 
 \subsection{Network stability}
 Although each transfer in one test runs in the same environment, the time that tests are run can influence the results if the network is busier at certain times of the day.
@@ -157,7 +171,7 @@ Although each transfer in one test runs in the same environment, the time that t
 \begin{figure}[h]
 \centering
 \includegraphics[width=.8\linewidth]{img/peak.png}
-\caption{Aggregated comparison of speed during peak and off hours.}
+\caption{Aggregated comparison of speed of data transfer during peak and off hours, with five transfer protocols.}
 \label{fig:peak}
 \end{figure}
 
@@ -178,7 +192,7 @@ Although each transfer in one test runs in the same environment, the time that t
 \label{tab:pval}
 \end{table}
 
-Figure~\ref{fig:peak} is a conventional summary of the speed at various times in the day. "Peak hours" were considered to be between 11h00 and 15h00, and all tests were either in this time frame (peak) or not (off hours). Interestingly, TCP based protocols tend to be slightly faster than GridFTP-UDT during peak hours, while the opposite is true during off hours. However, even though some might appear faster, a t-test between each set of subgroups reveals that the differences are not statistically significant. The p-values from this test can be seen in Table~\ref{tab:pval}, and their values are clearly quite large (meaning that we cannot reject the null hypothesis).
+Figure~\ref{fig:peak} shows a summary of the speed at various times in the day. `Peak hours' were considered to be between 11h00 and 15h00, and all tests were either in this time frame (peak) or not (off hours). Interestingly, TCP based protocols tend to be slightly faster than GridFTP-UDT during peak hours, while the opposite is true during off hours. However, even though some might appear faster, a t-test between each set of subgroups reveals that the differences are not statistically significant. The p-values from this test are listed in Table~\ref{tab:pval}, and are clearly quite large (meaning that we cannot reject the null hypothesis).
 
 \begin{figure*}
 \centering
@@ -196,15 +210,14 @@ Figure~\ref{fig:peak} is a conventional summary of the speed at various times in
 \label{fig:packets}
 \end{figure*}
 
-While the stability of the network at each time affects the speed of the transfers, but it is sometimes useful to look other, more subtle effects as well. 
+While the stability of the network at each time affects the speed of the transfers, it is sometimes useful to look other, more subtle effects as well. 
+Figure~\ref{fig:packets} represents  one complete transfer for each transfer protocol, for one file size (five rotations of Figure~\ref{fig:testbed_sequence}). This test is shown as a time series, where each point on the plot represents a packet. Both incoming and outgoing packets are plotted, and the height of each packet represents the size of its payload. In this case, there was a confirmed instability at the specific date and time that Figure~\ref{fig:bad_transfer} was captured. Note that transfers in Figure~\ref{fig:good_transfer} take about 45 seconds, while in Figure~\ref{fig:bad_transfer} they take over 1.5 minutes.
 
-Figure~\ref{fig:packets} represents  one complete transfer for each transfer protocol, for one file size (five rotations of Figure~\ref{fig:testbed_sequence}). This test is shown as a time series, where each point on the plot represents a packet. Both incoming and outgoing packets are plotted, and the height of each packet represents the size of it's payload. In this case, there was a confirmed instability at the specific date and time that Figure~\ref{fig:bad_transfer} was captured. Note that transfers in Figure~\ref{fig:good_transfer} take about 45 seconds, while in Figure~\ref{fig:bad_transfer} they take over 1.5 minutes.
-
-Firstly, comparing Figure~\ref{fig:good_transfer} and Figure~\ref{fig:bad_transfer} confirms that transfers on a busy network do take longer. Secondly, the comparison shows how each transfer protocol handles the congestion. The fingerprints for the TCP based protocols are very similar, but close inspection shows that the unstable transfers are more clustered. The stable transfers are sparsely populated but somewhat consistent, while the unstable transfers have distinct `bands' with densely packed columns separated by thinner gaps with no packets. A likely explanation for this is that a router on one of the hops (most likely the first hop) was congested and had to buffer packets until space was made. This is a typical side effect of congestion on packet switching networks.
+Comparison of Figure~\ref{fig:good_transfer} and Figure~\ref{fig:bad_transfer} confirms that transfers on a busy network do take longer. Secondly, the comparison shows how each transfer protocol handles the congestion. The fingerprints for the TCP based protocols are very similar, but close inspection shows that the unstable transfers are more clustered. The stable transfers are sparsely populated, but somewhat consistent, while the unstable transfers have distinct `bands' with densely packed columns separated by thinner gaps with no packets. A likely explanation for this is that a router on one of the hops (most likely the first hop) was congested and had to buffer packets until space was made. This is a typical side effect of congestion on packet switching networks.
 
 The UDP-based UDT mode of GridFTP changes in a more obvious way. Note that the axis limit doubles from the stable to unstable plot. This mode tries to match it's packet sizes to the network MTU (Maximum Transmission Unit) for efficiency. The MTU for the ethernet interface on the test machine was 1500, and Figure~\ref{fig:good_transfer} is an example of the transfer operating in ideal conditions, consistently achieving this size. However, it is clear from Figure~\ref{fig:bad_transfer} that the first half of the transfer was congested, and a bigger payload is forced into each packet. This is only one of the factors that influence transfer speed, but it clearly does have a negative impact.
 
-Because the differences in Figure~\ref{fig:peak} are not statistically significant, all tests are used for the following analysis.
+Because the differences in Figure~\ref{fig:peak} are not statistically significant, all tests are used for the speed and efficiency analysis.
 
 \subsection{Speed and Data Efficiency}
 \begin{figure}
@@ -214,9 +227,9 @@ Because the differences in Figure~\ref{fig:peak} are not statistically significa
 \label{fig:time}
 \end{figure}
 
-Figure~\ref{fig:time} is a very simple plot of the average time taken to transfer the largest file. This by no means allows one to see the full picture, but it is useful if you want to find out which protocol will move your data in the shortest time. The SCP and HPN-SCP are the fastest, and both GridFTP modes finish roughly 5 seconds later. FTP is the slowest, taking 8.7 more seconds, which is 7.9\% more time than SCP.
+Figure~\ref{fig:time} is a simple plot of the average time taken to transfer the largest file. This by no means allows one to see the full picture, but it is useful if you want to find out which protocol will move your data in the shortest time. The SCP and HPN-SCP are the fastest, and both GridFTP modes finish roughly 5 seconds later. FTP is the slowest, taking 8.7 more seconds, which is 7.9\% more time than SCP.
 
-At this stage is is useful to note that while GridFTP has improved upon FTP, the HPN patches to SCP have not sped up the transfer on this specific network configuration. Also, the improvement of GridFTP only holds true for this specific file size. A complete comparison for all file sizes can be found in Figure~\ref{fig:per_fs_speed}.
+At this stage is is useful to note that, while GridFTP has improved upon FTP, the HPN patches to SCP have not sped up the transfer on this specific network configuration. Also, the improvement of GridFTP only holds true for this specific file size. A complete comparison for all file sizes appears in Figure~\ref{fig:per_fs_speed}.
 
 \begin{figure*}[t]
 \centering
@@ -256,9 +269,7 @@ At this stage is is useful to note that while GridFTP has improved upon FTP, the
 \end{figure*}
 
 Figure~\ref{fig:aggregate} is a comparison between all five protocols measuring the total speed, and total bytes. This is aggregated across all tests for each protocol. Note that the speed calculations only include downstream data, while the `transferred data' measures include data that is sent from the client back to the server via control channels etc. The dashed red line in each plot represents the size of the transferred file, and can be used for quick reference to see if a particular transfer protocol sends more or less data than the filesize on average. If the point lies to the right of the red line, the transfer has an overhead on average. If the point is on the left, the protocol has managed to send compressed data in an efficient way.
-
 The corresponding numerical data (including upstream packets) can be seen in Table~\ref{tab:aggregate}.
-
 \begin{figure*}
 \centering
 	\begin{subfigure}{.45\textwidth}
@@ -274,18 +285,16 @@ The corresponding numerical data (including upstream packets) can be seen in Tab
 \caption{Metrics calculated per file size}
 \label{fig:per_fs}
 \end{figure*}
-
 This same data can be represented as a function of filesize. In this case, Figure~\ref{fig:per_fs_speed} compares the speed of each protocol for all tested file sizes. Surprisingly, the only protocols that are good consistently are SCP and HPN-SCP. GridFTP is consistently average, while FTP GridFTP-UDT change drastically with file size. 
 
-It must be noted that the differences in speed are quite small at this scale (the graph is scaled to $10^6$).
+Note that the differences in speed are quite small at this scale (the graph is scaled to $10^6$).
 
-Figure~\ref{fig:per_fs_data} shows the transferred data as a ratio of the file's size. A ratio of 100\% would mean that the total number of bytes transferred (both up and downstream) is exactly the file size. Ratios larger and smaller than this are more and less data efficient respectively.
+Figure~\ref{fig:per_fs_data} shows the data transferred as a ratio of the file's size. A ratio of 100\% means that the total number of bytes transferred (both up and downstream) is exactly the file size. Ratios larger and smaller than this are more-and less data efficient, respectively.
+Here, one can see that GridFTP, HPN-SCP and SCP all achieve some level of optimization, as they are between 99.5\% and 100\%. FTP is close to, but just above this line between 100\% and 100.5\%. GridFTP-UDT is an outlier in this case, and clearly sends much more data than the TCP-based protocols.
 
-Here, one can see that GridFTP, HPN-SCP and SCP all achieve some level of optimization, as they sit between 99.5\% and 100\%. FTP sits close to, but just above this line between 100\% and 100.5\%. GridFTP-UDT is an outlier in this case, and clearly sends much more data than the TCP-based protocols.
+One might expect that UDP transfers would use less data than TCP because UDP packets are not acknowledged by the host (requiring downstream data as well as upstream for each packet). This is not the case, because TCP acknowledgement packets are very small and tend not to make much of a difference. In fact, when the downstream data is removed completely, the resulting plots are almost identical to these that include the data. The overhead can instead be explained by UDP's lack of redundancy, and it is rare (but not impossible) for data to be sent more than once.
 
-One might assume that UDP transfers would use less data than TCP ones because UDP packets are not acknowledged by the host (requiring downstream data as well as upstream for each packet). This is not the case, because TCP acknowledgement packets are very small and tend not to make much of a difference. In fact, during some analysis, the downstream data was removed completely. The resulting plots were almost identical to the ones that included that data. The overhead can instead be explained by UDP's lack of redundancy, and it is rare (but not impossible) for data to be sent more than once.
-
-In a practical sense, all 5 protocols save GridFTP-UDT have roughly the same efficiency, where both compression and overhead are less than 0.5\%. GridFTP-UDT uses slightly more data (less than 5\% overhead) which is not significant in most circumstances.
+In a practical sense, all 5 protocols, save GridFTP-UDT have roughly the same efficiency, where both compression and overhead are less than 0.5\%. GridFTP-UDT uses slightly more data (less than 5\% overhead) which is not significant in most circumstances.
 
 \section{Conclusions}
 While transferring large datasets is not ideal, alternatives are not mature enough to remove the need completely. Cloud solutions are viable in some circumstances, but their shortcomings result in many situations where manually copying large files is unavoidable.
@@ -296,13 +305,13 @@ This testbed was deployed on a LAN network, a conventional home internet connect
 
 Tests were run during lunch hours, and early hours of the morning. The data dumps from these tests were analysed using the testbed's supplementary Jupyter notebook. It was found that there was no significant difference between the speeds during peak and off hours. However, there were interesting artefacts in the few cases where the network was congested.
 
-It was found that the TCP-based protocols achieved very similar speeds and data efficiency. GridFTP's `UDT' mode is built on UDP, and had a much higher overhead than the TCP protocols. The findings of Bresnahan et al.~\cite{bresnahan2009udt} were replicated, and GridFTP in UDT mode outperformed it's default mode for larger file sizes on this network.
+It was found that the TCP-based protocols achieved very similar speeds and data efficiency. GridFTP's `UDT' mode is built on UDP, and had a much higher overhead than the TCP protocols. However, it was faster than its default mode for larger file sizes on this network.
 
-Finally, it can be said that there were no significant improvements observed from the newer protocols. SCP and FTP both remained fast and efficient on the connection, where GridFTP and HPN-SCP were either mediocre, or changed with file size.
+Finally, we found no significant improvements for the newer protocols. SCP and FTP both remained fast and efficient on the connection, where GridFTP and HPN-SCP were either mediocre, or changed with file size.
 
-Of course, out of these four protocols, GridFTP remains the best choice for a fully configured data centre, as it can make use of striping and more complex authentication. However, if a researcher needs to copy a file now and then, SCP is still a solid choice, with the option of gaining some efficiency by applying the HPN patches with little effort.
+Of course, out of these four protocols, GridFTP remains the best choice for a fully configured data centre, as it can make use of striping and more complex authentication. However, if a researcher needs to copy a file occasionally, SCP is still a solid choice, with the option of gaining some efficiency by applying the HPN patches with little effort.
 
-In the future, it will be worthwhile to run these same tests on a network achieving over 1Gbit/s to see if the same results are yielded. This can be easily done by deploying the testbed described in this paper.
+In the future, it will be worthwhile to run the same tests on a network achieving over 1Gbit/s to see if the same results are yielded. This can be easily done by deploying the testbed described in this paper.
 
 \section{Acknowledgements}
 This project would not have been possible without access to virtual machines at both UCT and UWC. Mr. Peter van Heusden (South African Bioinformatics Institute) was extremely available during the project period, and kindly set up a VM in the SANBI DMZ. He also granted access to the Cisco switch which allowed rules for each protocol to be configured. Mr. Heine de Jager provided access to the UCT Science DMZ, and was very accommodating under strict security protocols. He was also extremely available, and helped fix multiple issues with the GridFTP setup and firewall rules.
