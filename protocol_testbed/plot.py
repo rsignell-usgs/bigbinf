@@ -1,7 +1,7 @@
 """
 Functions to produce matplotilb figures
 """
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 import json
 import numpy as np
 from matplotlib import pyplot as plt, dates
@@ -20,6 +20,10 @@ def plot_packets(batch_id):
     Plots time on the x axis vs length on the y axis
     """
     dump_batch_names = get_fnames_by_id(batch_id)
+
+    if len(dump_batch_names) < 5:
+        print "At least one protocol was missing from batch %s" % batch_id
+        return
 
     dump_protocols = []
     filesize = 0
@@ -86,13 +90,13 @@ def plot_speed_efficiency(df, filesize, title=True, legend=True, yaxis=True, xax
 
     # Add surrounding information
     if yaxis:
-        plt.ylabel("Speed (bytes/s)", size=20)
+        plt.ylabel("Speed (bytes/s)", size=24)
     if xaxis:
-        plt.xlabel("Total Bytes Transferred", size=20)
+        plt.xlabel("Total Bytes Transferred", size=24)
     if title:
-        plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(filesize), size=22, y=1.1)
+        plt.title("Speed vs Data Efficiency for %s File" % sizeof_fmt(filesize), size=26, y=1.1)
     if legend:
-        plt.legend(bbox_to_anchor=(1.3, 1), scatterpoints=1, prop={"size":"14"})
+        plt.legend(bbox_to_anchor=(1.3, 1), scatterpoints=1, prop={"size":"20"})
 
     # Make sure the limits are correct and consistent
     plt.axes().yaxis.set_major_locator(plt.MaxNLocator(4))
@@ -178,12 +182,12 @@ def plot_speed_day_night(speed_day, speed_night, title=True):
     # Index along the longest set of protocols
     p_names = sorted(set(speed_day.index))
     ind = np.array(range(len(p_names)))
-    
+
     # Plot the values
     width = 0.3
     plt.bar(ind, speed_day, width=width, color="y", label="Peak hours")
     plt.bar(ind+width, speed_night, width=width, color="#000022", label="Off hours")
-    
+
     # Set up the graph
     if title:
         plt.title("Peak vs Off Hours Speed", size=24)
@@ -191,5 +195,33 @@ def plot_speed_day_night(speed_day, speed_night, title=True):
     plt.legend(prop={"size":"20"})
     plt.ylabel("Speed (bytes/s)", size=22)
     plt.gca().set_xticklabels(p_names, size=22)
+    plt.show()
+
+def plot_time(df, title=True):
+    """
+    Takes in an aggregated dataframe indexed by protocol
+    Plots the average total time for each protocol
+    """
+    ind = np.array(range(len(df.index)))
+    width = 0.6
+    _max = max(df["Time (s)"])
+    _min = min(df["Time (s)"])
+    diff = _max - _min
+
+    max_yticks = 10
+
+    # Plot the data
+    plt.bar(ind, df["Time (s)"], width=width)
+
+    # Add surrounding info
+    plt.xticks(ind+width/2)
+    plt.gca().set_xticklabels(df.index, size=20)
+    plt.ylabel("Time taken for transfer (s)", size=20)
+    plt.ylim([_min - diff/4, _max + diff/4])
+    plt.gca().yaxis.set_major_locator(plt.MaxNLocator(max_yticks))
+
+    if title:
+        plt.title("Time taken for each protocol", size=22)
+
     plt.show()
 
