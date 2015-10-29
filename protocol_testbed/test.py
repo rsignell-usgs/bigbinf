@@ -81,9 +81,12 @@ if __name__ == "__main__":
                         help="The path where the file shold be copied to. \
                               Please use full paths with a trailing slash.")
     parser.add_argument("--store-packets", dest="store_packets", action="store_true",
-                        default=False)
+                        default=False, help="With this enabled, information is stored about each \
+                                             packet. This results in much larger log files. When \
+                                             not enabled, only aggregated data is stored")
     parser.add_argument("--delete-files", dest="delete_files", action="store_true",
-                        default=False)
+                        default=False, help="Remove the transferred file after it is finished \
+                                             copying")
     args = parser.parse_args()
 
     sys.exit(main())
