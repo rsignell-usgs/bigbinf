@@ -1,5 +1,10 @@
 \documentclass{sig-alternate-05-2015}
+\usepackage{float}
 \usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 
 
 \begin{document}
@@ -138,14 +143,56 @@ We implemented a proof-of-concept of the community cloud. The aim was not to foc
 
 \subsection{Evaluation}
 The functionality of the micro cloud is evaluated by submitting sample Bioinformatics analysis code as a job. The analysis code searches against a genome database. We chose a database that is publicly hosted by the National Center for Biotechnology Information (NCBI), an institution dedicated to improving technologies used in genomic research \cite{pruitt2005ncbi}. The analysis code makes use of the Basic Local Alignment Search Tool (BLAST) \cite{camacho2009blast}. This tool specifies a database and submits a query containing specific search criteria. The job runs successfully if the container exits and results are available for download. The results consists of a single text file output by the BLAST tool which gives details according to the query submitted. Different sized jobs are tested by increasing or decreasing the size of the query, which makes it easily scalable to different sized test cases.
+\\\\
+The cloud platform was tested by submitting three jobs containing analysis code as described above. Each job tested a different sized query. After successful completion of each job the results were available for download, archived in a tar file. Each job's results contained a single text file created by the BLAST tool, which contained details about the query and the database and outputs generated based on evaluating the query with the database. The exact results output from the job do not give any insights regarding the evaluation of the cloud platform because we are testing the platform itself and not the analysis code. 
 
 
+\section{Results and Discussion}
+
+\begin{figure*}[h]
+\centering
+	\begin{subfigure}{1\linewidth}
+		\includegraphics[width=\linewidth]{img/screenshot2.png}
+		\caption{The home page which contains a form for submitting a job and a list of jobs currently in the queue}
+		\label{fig:good_transfer}
+	\end{subfigure}
+	\begin{subfigure}{.9\linewidth}
+		\includegraphics[width=\linewidth]{img/screenshotjobqueue2.png}
+		\caption{The job queue after a job is complete}
+		\label{fig:bad_transfer}
+	\end{subfigure}
+	\begin{subfigure}{.5\linewidth}
+		\includegraphics[width=\linewidth]{img/screenshotRegions.png}
+		\caption{A list of available micro clouds}
+		\label{fig:bad_transfer}
+	\end{subfigure}
+\caption{Micro Cloud Screenshots: The frontend web interface available to users. }
+\label{fig:packets}
+\end{figure*}
+
+%\begin{figure*}
+%\centering
+%\includegraphics[scale=0.5]{img/screenshot2.png}
+%\caption{Micro Cloud Screenshot: The home page.}
+%\label{fig:screen1}
+%\end{figure*}
+%
+%\begin{figure*}
+%\centering
+%\includegraphics[scale=0.6]{img/screenshotjobqueue2.png}
+%\caption{Micro Cloud Screenshot: The job queue after a job is complete.}
+%\label{fig:screenjobqueue}
+%\end{figure*}
+%
+%
+%\begin{figure*}
+%\centering
+%\includegraphics[scale=0.6]{img/screenshotRegions.png}
+%\caption{Micro Cloud Screenshot: A list of available micro clouds.}
+%\label{fig:screenregions}
+%\end{figure*}
 
 
-\section{Results}
-The cloud platform was tested by submitting three jobs containing analysis code as described above in evaluation. Each job tested a different sized query. After successful completion of each job the results were available for download, archived in a tar file. Each job's results contained a single text file created by the BLAST tool, which contained details about the query and the database and outputs generated based on evaluating the query with the database. The exact results output from the job do not give any insights regarding the evaluation of the cloud platform because we are testing the platform itself and not the analysis code. 
-
-\subsection{Findings}
 Docker saves on storage space and bandwidth with regards to caching docker images. For example if one container uses an Ubuntu base image for the first time, the Ubuntu image must be downloaded. If a second container also uses the same Ubuntu image then it uses the cached copy instead of downloading the image again. This benefit comes from the layered filesystem that Docker uses. 
 The base image used in the evaluation is about 600MB in size. This should only have resulted in the first job submitted (which was using that base image) to have a longer build process. The subsequent jobs should've been built in a few seconds. This unfortunately was not the case. Every job took extremely long to move from the build queue to the ready queue. A bottleneck was found after a rigorous investigation. This bottleneck occurs between the Docker builder and the image repository. This means that building the image from the Dockerfile is indeed quick, given that the base image is already cached. The problem occurs when pushing the image to the repository. Docker appears to be pushing the entire image to the repository and spends a lot of time buffering the image to disk, before starting the upload to the repository. Poor performance with pushing a large Docker image seems to be a result of Docker implementation decisions specific to pushing an image to a remote repository. There have been issues opened on this topic on the official Docker Github repository.
 \\\\
