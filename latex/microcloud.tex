@@ -15,7 +15,7 @@
 
 % ISBN
 
-\title{Micro Cloud Platform for Processing of Big Data using Docker Containers in the Context of Bioinformatics}
+\title{Micro Cloud Platform for Processing Big Data in Bioinformatics}
 
 \numberofauthors{1}
 \author{
@@ -111,7 +111,7 @@ To create a cloud platform with containers, a framework is needed to manage cont
 A dedicated docker-in-docker container is run which is used to build docker images from dockerfiles. The image is then pushed to a private docker repository which can be accessed by any node in the cluster. The docker image is pulled by a worker node when the job is assigned to that worker node.
 
 \subsubsection{Scheduler}
-The default scheduler relies on first-in-first-out (FIFO) queues to schedule jobs. There are 3 FIFO queues: a build queue where dockerfiles are queued for the building process, a ready queue where Docker images are ready to be run, and an archiving queue where jobs are queued to have their results archived for downloading. The scheduler keeps track of running jobs using a list rather than a FIFO queue because running jobs are asynchronous. This means for example that job B can be started after job A and still still complete before job A. The number of concurrent jobs running is dependent on the number of worker nodes. Another two lists are used to keep track of completed jobs, one list for completed jobs with no results and another list for completed jobs with results ready to be downloaded. The completed jobs with no results queue is relevant because it is possible to directly interact with remote storage from within the container without using the cluster provided storage. An example of this is using object storage which isn't suited for mounting as a filesystem.
+The default scheduler relies on first-in-first-out (FIFO) queues to schedule jobs. There are 3 FIFO queues: a build queue where dockerfiles are queued for the building process, a ready queue where Docker images are ready to be run, and an archiving queue where jobs are queued to have their results archived for downloading. The scheduler keeps track of running jobs using a list rather than a FIFO queue because running jobs are asynchronous. This means for example that job B can be started after job A and still still complete before job A. The number of concurrent jobs running is dependent on the number of worker nodes. Another two lists are used to keep track of completed jobs, one list for completed jobs with no results and another list for completed jobs with results ready to be downloaded. The completed jobs with no results queue is relevant because it is possible to directly interact with remote storage from within the container without using the cluster provided storage. An example of this is using object storage which is not suited for mounting as a filesystem.
 
 \subsubsection{Storage}
 The cluster at UWC makes use of Ceph storage which can be accessed by a RADOS Block Device (RBD). Kubernetes provides support for mounting an RBD as a storage volume in a container. However, due to difficulties getting Kubernetes to properly work with RBD during development, a different approach was taken. An RBD was mounted on the worker node outside of Kubernetes. It was then treated as a normal filesystem and mounted as host storage in the container. Using RBD in this way is still beneficial compared to using plain host storage as raw data doesn't have to be copied to each VM, which is infeasible given the size of most raw data in Bioinformatics (The raw data used during the evaluation of the system is 36GB).
@@ -132,7 +132,7 @@ A community cloud is formed by implementing a centralised discovery service. Thi
 
 
 \subsection{Constraints}
-Micro cloud deployments for evaluation are limited to UWC. The evaluation was done on one community cloud containing two micro clouds. Each micro cloud was deployed on a single virtual machine (VM) as a single node cluster. Each VM has 1GB RAM, a single cpu, and 10GB of storage. Two 100Gb RBDs were provided, one for raw data and one for storing results. Due to both clusters residing on the same network, both clusters made use of the same storage. This wouldn't be the case if each cluster was deployed at a different institution, but for the purposes of the evaluation it isn't important.
+Micro cloud deployments for evaluation are limited to UWC. The evaluation was done on one community cloud containing two micro clouds. Each micro cloud was deployed on a single virtual machine (VM) as a single node cluster. Each VM has 1GB RAM, a single cpu, and 10GB of storage. Two 100Gb RBDs were provided, one for raw data and one for storing results. Due to both clusters residing on the same network, both clusters made use of the same storage. This would not be the case if each cluster was deployed at a different institution, but for the purposes of the evaluation it is not important.
 
 \subsection{Software Engineering}
 
@@ -148,26 +148,46 @@ The cloud platform was tested by submitting three jobs containing analysis code 
 
 
 \section{Results and Discussion}
+We have implemented the micro cloud proof-of-concept and evaluated it using Bioinformatics analysis code. Figure \ref{fig:screenshots} shows the web interface available to the user. 
+
+\subsection{Submit a Job}
+Figure \ref{fig:screenshot2} shows the form for submitting a new job. 
+To submit a job the user needs to specify a tar file to upload. The tar file must contain a Dockerfile in its root directory and any other source code required to run the job. Documentation on how to write a Dockerfile is available in the Docker documentation \cite{dockerfile}. Figure \ref{fig:dockerfile} shows the Dockerfile which was used in the evaluation above. A Dockerfile starts with specifying a base Docker image. The base image used in Figure \ref{fig:dockerfile} is identified by simonalpha/ncbi-blast-docker. Docker images can either be official or third party (created by the community), and users can search for images on the official Docker Hub \cite{dockerhub}. The image used in this case is a third party image which already contains the NCBI Blast search tool \cite{dockerblast}.
+\\\\
+After selecting the tar file, the user has the option of specifying two mount points for the docker container, one mount point specifies the raw data path and the other specifies the directory where results will be stored. If the data path is not specified by the user then the raw data will not be mounted in the Docker container. If the results path is not specified then the user will not be able to download the results once the job has completed running.
+
+\begin{figure}
+	\begin{verbatim}
+	FROM simonalpha/ncbi-blast-docker
+
+	ADD query.fasta /blast/
+
+CMD blastp -db /db/ncbi_nr/nr -query query.fasta 
+           -out /results/results.out
+	\end{verbatim}
+	\caption{An example Dockerfile used in evaluation.}
+\label{fig:dockerfile}
+\end{figure}
 
 \begin{figure*}[t!]
 \centering
 	\begin{subfigure}[h]{.9\textwidth}
 		\includegraphics[width=\textwidth]{img/screenshot2.png}
 		\caption{The home page which contains a form for submitting a job and a list of jobs currently in the queue}
-		\label{fig:good_transfer}
+		\label{fig:screenshot2}
 	\end{subfigure}
 	\begin{subfigure}[h]{.9\textwidth}
 		\includegraphics[width=\textwidth]{img/screenshotjobqueue2.png}
 		\caption{The job queue after a job is complete}
-		\label{fig:bad_transfer}
+		\label{fig:screenshotjobqueue}
 	\end{subfigure}
 	\begin{subfigure}[h]{.5\textwidth}
 		\includegraphics[width=\textwidth]{img/screenshotRegions.png}
 		\caption{A list of available micro clouds}
-		\label{fig:bad_transfer}
+		\label{fig:screenshotRegions}
 	\end{subfigure}
 \caption{Micro Cloud Screenshots: The frontend web interface available to users. }
-\label{fig:packets}
+\label{fig:screenshots}
 \end{figure*}
 
 %\begin{figure*}
@@ -191,10 +211,9 @@ The cloud platform was tested by submitting three jobs containing analysis code 
 %\caption{Micro Cloud Screenshot: A list of available micro clouds.}
 %\label{fig:screenregions}
 %\end{figure*}
-
-
+\subsection{Image Builder Bottleneck}
 Docker saves on storage space and bandwidth with regards to caching docker images. For example if one container uses an Ubuntu base image for the first time, the Ubuntu image must be downloaded. If a second container also uses the same Ubuntu image then it uses the cached copy instead of downloading the image again. This benefit comes from the layered filesystem that Docker uses. 
-The base image used in the evaluation is about 600MB in size. This should only have resulted in the first job submitted (which was using that base image) to have a longer build process. The subsequent jobs should've been built in a few seconds. This unfortunately was not the case. Every job took extremely long to move from the build queue to the ready queue. A bottleneck was found after a rigorous investigation. This bottleneck occurs between the Docker builder and the image repository. This means that building the image from the Dockerfile is indeed quick, given that the base image is already cached. The problem occurs when pushing the image to the repository. Docker appears to be pushing the entire image to the repository and spends a lot of time buffering the image to disk, before starting the upload to the repository. Poor performance with pushing a large Docker image seems to be a result of Docker implementation decisions specific to pushing an image to a remote repository. There have been issues opened on this topic on the official Docker Github repository.
+The base image used in the evaluation is about 600MB in size. This should only have resulted in the first job submitted (which was using that base image) to have a longer build process. The subsequent jobs should have been built in a few seconds. This unfortunately was not the case. Every job took extremely long to move from the build queue to the ready queue. A bottleneck was found after a rigorous investigation. This bottleneck occurs between the Docker builder and the image repository. This means that building the image from the Dockerfile is indeed quick, given that the base image is already cached. The problem occurs when pushing the image to the repository. Docker appears to be pushing the entire image to the repository and spends a lot of time buffering the image to disk, before starting the upload to the repository. Poor performance with pushing a large Docker image seems to be a result of Docker implementation decisions specific to pushing an image to a remote repository. There have been issues opened on this topic on the official Docker Github repository.
 \\\\
 A change in core architecture of the cluster could fix this bottleneck. The proposed design would be to remove the single dedicated docker builder and instead make every worker node a docker builder. This would mean that the scheduling of building and running jobs would be more tightly integrated, as the image must be built on the worker node that it is scheduled to run on. This would eliminate the need for a private image repository and thus eliminate the process of pushing an image to a repository. Docker is already a dependency for every worker node to be able to run Docker containers. The only problem with this architecture is that it has to be supported by the cluster manager used. In the case of this cloud platform, Kubernetes unfortunately doesn't currently support it. 
 
