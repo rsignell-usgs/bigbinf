@@ -94,6 +94,12 @@ Kubernetes also implements its own volume abstraction separate from Docker volum
 Ceph storage is a distributed object storage system. Ceph provides flexibility and implements abstractions to use Ceph objects as block storage or as a network file system, in addition to using plain Ceph objects \cite{wang2013performance}. Ceph objects are based on RADOS (Reliable Autonomic Distributed Object Store). Ceph provides scalability and reliability through automatic distribution and replication of objects. An Object Storage Device (OSD) refers to a Ceph storage unit which can either be physical or logical. Ceph relies on hash algorithms to calculate an objects location using the object's identifier and the cluster layout. Objects are accessed via ceph monitors which behave like distributed servers. A ceph cluster always has more than one active monitor for redundancy and scalability.
 
 
+\subsection{Taverna}
+Taverna is a workflow tool designed to help scientists create reusable workflow tasks. Taverna aims to help the user create a single workflow by combining a number of tasks, often using distributed web services. Taverna has also been used in cloud solutions where all the necessary services are hosted in the same cloud. This has the benefit of only having to upload the raw data once to a different location and then being able to run the entire workflow on that cloud. Taverna only manages the workflow, and doesn't dictate which web services are available. It is used by the Bioinformatics community and researchers typically share their workflows with the community \cite{wolstencroft2013taverna}.
+
+\subsection{Galaxy}
+Galaxy is a web application which provides tools for data retrieval and custom analysis tools specific to the field of Bioinformatics. Analyses on genomic data is often done via commandline tools. Galaxy aims to make such analyses simple by providing the functionality to the user through a web browser. Galaxy provides a multitude of tools and plugins to perform various tasks on genomic data.  The web application is open-source and can be tested on the official hosted server or installed locally or on a private cloud\cite{hillman2012using}.
+
 \section{Design And Implementation}
 
 
