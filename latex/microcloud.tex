@@ -5,6 +5,7 @@
 \usepackage{booktabs}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{flushend}
 
 
 \begin{document}
@@ -35,9 +36,9 @@ The Blast search tool is available at \url{ftp://ftp.ncbi.nlm.nih.gov/blast/exec
 
 \maketitle
 \begin{abstract}
-Processing Big Data in Bioinformatics is often made difficult by the need to download the entire data set. The solution proposed is to create a micro cloud platform which would be deployed at various institutions. This micro cloud should allow users to process data without having to download it. Results are normally miniscule in size compared to the raw data, which makes them easy to download. A community cloud is formed by connecting micro clouds using a discovery service. A proof of concept is implemented and evaluated using sample Bioinformatics analysis code.
+Processing Big Data in Bioinformatics is often made difficult by the need to download the entire data set. The solution proposed is to create a micro cloud platform which would be deployed at various institutions. This micro cloud should allow users to process data without having to download it. Results are normally miniscule in size compared to the raw data, which makes them easy to download. A community cloud is formed by connecting micro clouds using a discovery service. A proof-of-concept is implemented and evaluated using sample Bioinformatics analysis code.
 \end{abstract}
-\keywords{Big Data; BioInformatics; Clouds}
+\keywords{Big Data; BioInformatics; Clouds; Docker; Kubernetes}
 
 
 \section{Introduction}
@@ -69,16 +70,16 @@ The setup of a micro cloud requires both middleware to enable installation of an
 \subsection{Docker}
 Docker is an implementation of a Linux container management tool. Docker functions similarly to virtualisation. It uses an image to quickly launch a pre-configured isolated environment. The key difference is that containers directly use the Linux kernel on the host machine to run native instructions, whereas virtual machines emulate the entire operating system, including the kernel. Every virtual machine launches its own kernel and is not aware of the host kernel. This key difference make containers lightweight, allowing them to be launched in a fraction of time compared to launching a virtual machine \cite{joy2015performance}. 
 \\\\
-Docker builds on Linux containers by implementing an image format which makes use of an AUFS filesystem. This allows a docker image to be built up from a number of intermediate layers. Layers can be added or removed without affecting another layer in the image \cite{boettiger2014introduction}. Docker images contain all the data needed to launch the container, as well as any additional applications or data added to it by the user.
+Docker builds on Linux containers by implementing an image format which makes use of an AUFS filesystem. This allows a Docker image to be built up from a number of intermediate layers. Layers can be added or removed without affecting another layer in the image \cite{boettiger2014introduction}. Docker images contain all the data needed to launch the container, as well as any additional applications or data added to it by the user.
 \\\\
 Docker images do not need to contain all the data that the container needs access to. Docker volumes provide a mechanism for mounting a directory from the host to inside the container. This is useful if the data is persistent, because it doesn't matter if the container gets destroyed when you can simply create a new container and mount the same data to a new container. 
 \\\\
-The layered approach to creating a Docker image allows images to be built using a script called a Dockerfile. Defining an image with a script makes docker images much more portable and reproducible compared to an image from a running environment, as is the case with virtualisation \cite{boettiger2014introduction}.
+The layered approach to creating a Docker image allows images to be built using a script called a Dockerfile. Defining an image with a script makes Docker images much more portable and reproducible compared to an image from a running environment, as is the case with virtualisation \cite{boettiger2014introduction}.
 \\\\
 The Docker group also hosts a publicly available image repository for upload or download of available Docker images \cite{dockerhub}. These images provide full disclosure of its configuration via its Dockerfile. This provides great community support with images for specific use-cases. An example is CloudBioLinux which officially only provides virtual machine images, however third parties have uploaded Docker images of CloudBioLinux available for anyone to use \cite{dockerbiolinux}.
 
 \subsection{OpenStack}
-Openstack is a full stack cloud platform which manages compute, storage, and networking resources. OpenStack can be used to orchestrate virtual machines and has recently been extended to support docker containers as well. OpenStack aims to be a complete cloud solution which has resulted in it being cluttered, with many-inter dependent components \cite{affetti2015adock}. The required functionality  from a cluster manager for this project is limited compared to everything that OpenStack provides. A simpler cluster manager, specifically designed for use with docker is better suited for this project.
+Openstack is a full stack cloud platform which manages compute, storage, and networking resources. OpenStack can be used to orchestrate virtual machines and has recently been extended to support Docker containers as well. OpenStack aims to be a complete cloud solution which has resulted in it being cluttered, with many-inter dependent components \cite{affetti2015adock}. The required functionality  from a cluster manager for this project is limited compared to everything that OpenStack provides. A simpler cluster manager, specifically designed for use with docker is better suited for this project.
 
 
 \subsection{Kubernetes}
@@ -98,7 +99,7 @@ Ceph storage is a distributed object storage system. Ceph provides flexibility a
 Taverna is a workflow tool designed to help scientists create reusable workflow tasks. Taverna aims to help the user create a single workflow by combining a number of tasks, often using distributed web services. Taverna has also been used in cloud solutions where all the necessary services are hosted in the same cloud. This has the benefit of only having to upload the raw data once to a different location and then being able to run the entire workflow on that cloud. Taverna only manages the workflow, and doesn't dictate which web services are available. It is used by the Bioinformatics community and researchers typically share their workflows with the community \cite{wolstencroft2013taverna}.
 
 \subsection{Galaxy}
-Galaxy is a web application which provides tools for data retrieval and custom analysis tools specific to the field of Bioinformatics. Analyses on genomic data is often done via commandline tools. Galaxy aims to make such analyses simple by providing the functionality to the user through a web browser. Galaxy provides a multitude of tools and plugins to perform various tasks on genomic data.  The web application is open-source and can be tested on the official hosted server or installed locally or on a private cloud\cite{hillman2012using}.
+Galaxy is a web application which provides tools for data retrieval and custom analysis tools specific to the field of Bioinformatics. Analyses on genomic data are often done via commandline tools. Galaxy aims to make such analyses simple by providing the functionality to the user through a web browser. Galaxy provides a multitude of tools and plugins to perform various tasks on genomic data.  The web application is open-source and can be tested on the official hosted server or installed locally or on a private cloud\cite{hillman2012using}.
 
 \section{Design And Implementation}
 
@@ -115,10 +116,10 @@ Docker is the main technology that we are using to build the micro cloud. We are
 
 \subsection{System Architecture}
 Figure \ref{fig:architecture} gives an overview of how components interact. This section gives implementation-specific details for every component.
-
+\\\\
 \subsubsection{Job}
 A job describes a single instance of code uploaded for execution. 
-The micro cloud platform uses Docker containers to execute code. Docker images are created with dockerfiles, which specify the execution environment and what files to execute. Submitting a job requires a Dockerfile and source code to be executed, uploaded together packaged as a single tar archive.  
+The micro cloud platform uses Docker containers to execute code. Docker images are created with Dockerfiles, which specify the execution environment and what files to execute. Submitting a job requires a Dockerfile and source code to be executed, uploaded together packaged as a single tar archive.  
 
 \subsubsection{Cluster Manager}
 To create a cloud platform with containers, a framework is needed to manage containers in a cluster which performs scheduling and resource allocation. OpenStack was the first system considered for use as a container manager. After much trouble setting up the development environment it was decided that there are more suitable systems to solve the problem. Kubernetes was chosen as the cluster manager framework for managing the micro cloud. Kubernetes handles scheduling a container onto a specific worker node. Kubernetes also notifies our scheduler when a container has terminated via a streaming http request that the scheduler initiates. Kubernetes' primary focus is to run non-terminating services. It provides replication and load balancing capabilities for services. We opted to make use of this by running the web interface, scheduler, image builder, private docker registry, and discovery service inside Kubernetes. Kubernetes aims to keep services running, which means that it will restart the service if it terminates for any reason.
@@ -165,6 +166,9 @@ The cloud platform was tested by submitting three jobs containing analysis code 
 
 \section{Results and Discussion}
 We have implemented the micro cloud proof-of-concept and evaluated it using Bioinformatics analysis code. Figure \ref{fig:screenshots} shows the web interface available to the user. 
+\\\\
+The implemented micro cloud platform enables a user to submit a job, which it then automatically builds and schedules onto a worker node. Once the job is complete it allows the user to download the results. The user is able to view the job queue and the status of each job. Together with the discovery service, this makes up the core functionality of the micro cloud platform and provides a proof-of-concept that focuses on using Docker containers for running batch jobs. A useful function that the implementation does not provide, is the ability to stop and remove a running container. Once a user submits a job it can not be cancelled and has to run to completion. Completed jobs stay in the queue to allow the user to download the results and can be removed by the user. 
+
 
 \subsection{Submit a Job}
 Figure \ref{fig:screenshot2} shows the form for submitting a new job. 
@@ -227,25 +231,39 @@ CMD blastp -db /db/ncbi_nr/nr -query query.fasta
 %\caption{Micro Cloud Screenshot: A list of available micro clouds.}
 %\label{fig:screenregions}
 %\end{figure*}
+
+\subsection{Ceph Storage}
+Originally, one of the aims of the micro cloud was to allow the user to view the raw data that is available
+on the micro cloud and specify data to be mounted in the job's container. This would have been done by using Kubernetes to mount an RBD in the container. A single dataset would then reside on an RBD and a new dataset would be copied to its own RBD. Unfortunately we were unable to get this functionality of Kubernetes to work. We resorted to mounting a single RBD for all raw data on the host node, outside of Kubernetes and use it as host storage inside Kubernetes. This was not a problem for our single node cluster, but would become a problem for a multi-node cluster. This means that a user does not have the option of selecting raw data to mount inside the container, instead, all available raw data is mounted in every container. This was not a problem for the evaluation as we only dealt with a single dataset, it is however a major shortcoming in the functionality of the micro cloud. 
+
 \subsection{Image Builder Bottleneck}
 Docker saves on storage space and bandwidth with regards to caching docker images. For example if one container uses an Ubuntu base image for the first time, the Ubuntu image must be downloaded. If a second container also uses the same Ubuntu image then it uses the cached copy instead of downloading the image again. This benefit comes from the layered filesystem that Docker uses. 
 The base image used in the evaluation is about 600MB in size. This should only have resulted in a longer build process for the first job submitted (which was using that base image). The subsequent jobs should have been built in a few seconds. This unfortunately was not the case. Every job took extremely long to move from the build queue to the ready queue. A bottleneck was found after a rigorous investigation. This bottleneck occurs between the Docker builder and the image repository. This means that building the image from the Dockerfile is indeed quick, given that the base image is already cached. The problem occurs when pushing the image to the repository. Docker appears to be pushing the entire image to the repository and spends a lot of time buffering the image to disk, before starting the upload to the repository. Poor performance with pushing a large Docker image seems to be a result of Docker implementation decisions specific to pushing an image to a remote repository. There have been issues opened on this topic on the official Docker Github repository \cite{dockerpushperformance},\cite{dockercrossrepopush}.
 \\\\
 A change in core architecture of the cluster could fix this bottleneck. The proposed design would be to remove the single dedicated docker builder and instead make every worker node a docker builder. This would mean that the scheduling of building and running jobs would be more tightly integrated, as the image must be built on the worker node that it is scheduled to run on. This would eliminate the need for a private image repository and thus eliminate the process of pushing an image to a repository. Docker is already a dependency for every worker node to be able to run Docker containers. The only problem with this architecture is that it has to be supported by the cluster manager used. In the case of this cloud platform, Kubernetes unfortunately doesn't currently support it. 
 
+\subsection{Reflection}
+We started this project with the aim of implementing a micro cloud platform that allows users to submit jobs and process raw data. We successfully implemented a proof-of-concept micro cloud platform and successfully evaluated it with sample Bioinformatics code. We had hoped to perform the evaluation on two multi-node deployments, one at UWC and one at UCT. This was unfortunately not feasible and thus we resorted to deploying two single node clusters at UWC. The storage solution for the micro cloud was not entirely satisfactory, as users could not browse the available raw data. The data was still available for processing from within the container though, which means that we partially met that goal.
+\\\\
+There was originally more emphasis placed on creating a community cloud, however this part of the project was mostly neglected due to the complexity of creating the micro cloud itself. Although a simple discovery service was implemented, it is not what we originally envisioned. 
+\\\\
+The aim was to focus on the core functionality of processing a job, which means we didn't take security into account. The implementation entirely neglects security and does not provide any sort of authentication mechanism. This is not a problem because it wasn't part of the original aims, but rather was considered an add-on or next step to this project.
+\\\\
+The micro cloud platform is completely dockerized, which means it can be deployed by running a few Docker containers. The Kubernetes cluster can also be deployed using Docker containers. This makes the project reproducible, with one caveat being the Ceph storage required to complete the micro cloud deployment. 
+\\\\
+Implementing the micro cloud turned out to be more difficult than expected. The main reason being a lack of prior knowledge and experience with Docker. This made it difficult to make a good choice regarding the cluster manager. There may be a better suited cluster manager than Kubernetes, however it provided most of the funcionality required. The easiest part of implementing the micro cloud platform was the web interface, using Python and Flask for the backend and Angularjs for the front end. These parts were fairly straightforward and prior experience made it easier. 
+
+
+
+
+
 \section{Conclusions}
 The implemented micro cloud platform is proof that using Docker containers as a lightweight alternative to virtual machines is a good way to run jobs in an isolated environment, while making the execution environment flexible and user configurable. This is important as it does not restrict a user to a limited set of configured tools, and is thus more maintainable because the administrator is not required to keep the tools up to date. A user configurable environment does not mean that it is time consuming, because Dockerfiles allow re-using a specific environment and simply adding to it the extra requirements. The public Docker repository allows people to share their configured environment with the community. We made use of the public Docker repository in the evaluation and found an image configured with the NCBI Blast application. The image worked perfectly and eliminated the need for us to create our own image containing the Blast application.
 \\\\
 While Docker allows sharing of configured execution environments, sharing micro cloud deployments between institutions is the real focus for improving collaboration. The discovery service creates a loosely coupled community cloud. It allows the user to see a list of the connected micro clouds and choose to redirect to a different micro cloud. This is simple but effective in promoting collaboration between micro clouds.
-\\\\
-The implemented micro cloud platform enables a user to submit a job, which it then automatically builds and schedules onto a worker node. Once the job is complete it allows the user to download the results. The user is able to view the job queue and the status of each job. Together with the discovery service, this makes up the core functionality of the micro cloud platform and provides a proof-of-concept that focuses on using Docker containers for running batch jobs. A useful function that the implementation does not provide, is the ability to stop and remove a running container. Once a user submits a job it can not be cancelled and has to run to completion. Completed jobs stay in the queue to allow the user to download the results and can be removed by the user. 
-\\\\
-Originally, one of the aims of the micro cloud was to allow the user to view the raw data that is available
-on the micro cloud and specify data to be mounted in the job's container. This would have been done by using Kubernetes to mount an RBD in the container. A single dataset would then reside on an RBD and a new dataset would be copied to its own RBD. Unfortunately we were unable to get this functionality of Kubernetes to work. We resorted to mounting a single RBD for all raw data on the host outside of Kubernetes and use it as host storage inside Kubernetes. This means that a user does not have the option of selecting raw data to mount inside the container, instead, all available raw data is mounted in every container. This was not a problem for the evaluation as we only dealt with a single dataset, it is however a major shortcoming in the functionality of the micro cloud. 
 
 
 
-The implementation entirely neglects security and does not provide any sort of authentication mechanism.
 
 
 
