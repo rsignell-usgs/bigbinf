@@ -11,6 +11,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
 		<link rel="stylesheet" href="assets/css/main.css" />
+		<link rel="stylesheet" href="assets/css/protocols.css" />
 		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
 		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
 	</head>
@@ -37,13 +38,50 @@
 
 					<header class="major special">
 						<h2>Protocols</h2>
-						<p>We measure </p>
+						<p>We measure old and new transfer protocols to see how practical they are</p>
 					</header>
 
-					<a href="#" class="image fit"><img src="images/pic11.jpg" alt="" /></a>
-					<p>Vis accumsan feugiat adipiscing nisl amet adipiscing accumsan blandit accumsan sapien blandit ac amet faucibus aliquet placerat commodo. Interdum ante aliquet commodo accumsan vis phasellus adipiscing. Ornare a in lacinia. Vestibulum accumsan ac metus massa tempor. Accumsan in lacinia ornare massa amet. Ac interdum ac non praesent. Cubilia lacinia interdum massa faucibus blandit nullam. Accumsan phasellus nunc integer. Accumsan euismod nunc adipiscing lacinia erat ut sit. Arcu amet. Id massa aliquet arcu accumsan lorem amet accumsan.</p>
-					<p>Amet nibh adipiscing adipiscing. Commodo ante vis placerat interdum massa massa primis. Tempus condimentum tempus non ac varius cubilia adipiscing placerat lorem turpis at. Aliquet lorem porttitor interdum. Amet lacus. Aliquam lobortis faucibus blandit ac phasellus. In amet magna non interdum volutpat porttitor metus a ante ac neque. Nisi turpis. Commodo col. Interdum adipiscing mollis ut aliquam id ante adipiscing commodo integer arcu amet Ac interdum ac non praesent. Cubilia lacinia interdum massa faucibus blandit nullam. Accumsan phasellus nunc integer. Accumsan euismod nunc adipiscing lacinia erat ut sit. Arcu amet. Id massa aliquet arcu accumsan lorem amet accumsan commodo odio cubilia ac eu interdum placerat placerat arcu commodo lobortis adipiscing semper ornare pellentesque.</p>
-					<p>Amet nibh adipiscing adipiscing. Commodo ante vis placerat interdum massa massa primis. Tempus condimentum tempus non ac varius cubilia adipiscing placerat lorem turpis at. Aliquet lorem porttitor interdum. Amet lacus. Aliquam lobortis faucibus blandit ac phasellus. In amet magna non interdum volutpat porttitor metus a ante ac neque. Nisi turpis. Commodo col. Interdum adipiscing mollis ut aliquam id ante adipiscing commodo integer arcu amet blandit adipiscing arcu ante.</p>
+                    <p>
+                    The size of data sets is increasing rapidly - this is the era of `Big Data'. One example is in Bioinformatics, where next generation sequencing has resulted in a massive increase in the size of raw data, which can be tens of gigabytes in size. Genome sequencing technologies like SOLiD provide much higher data output at a cheaper cost, which creates challenges in data storage, transfer and access. In fact, the cost of storing a byte has been higher than sequencing a base pair since before 2010.
+                    </p>
+                    <p>
+                    As researchers require access to data warehouses to transfer the sequences they need for local analysis, these locations are often connected by massive data pipes like National Research and Education Networks (NREN's). For example, South African universities are connected by the South African National Research Network which runs at 10Gbps. Unfortunately, standard transfer protocols like FTP and SSH were not designed for use on high-throughput networks, and alternate protocols must be used to avoid bottlenecks. However, it is not always clear which is the most suitable protocol for transfer of a particular file type between two end points.
+                    </p>
+
+                    <img class="image-center" src="images/loop.png" alt="" width=600/>
+
+                    <p>
+                    The simplest way to compare transfer protocols is to actually copy files. In this way, low-level technical details are ignored while practical data is captured. If more information is needed to explain any results, these details can be examined afterwards. With these requirements in mind, a testbed is created to measure speed, data efficiency and packet size of specific transfer protocols. Transfers are run and information about them is captured and saved. The testbed does not output the `best transfer protocol', but rather presents the information relevant to the specific environment so that the user can make an informed decision.
+                    </p>
+
+                    <img class="image-center" src="images/speed-data.png" alt="" width=1000/>
+
+                    <p>
+                    Using the supplementary Jupyter notebook, the logs can be aggregated and used to calculate metrics and display graphs. These include plots which are computed by looking at the time of each packet, and the size of its payload.
+                    </p>
+
+
+                    <p>
+                    This testbed was deployed on a LAN network, a conventional home internet connection, and a high-speed research and education network. The results from the SANReN connection between the Universities of Cape Town and the Western Cape were compiled and analysed. The traditional FTP and SCP were tested, as well as their newer counterparts, GridFTP and HPN-SCP.
+                    </p>
+
+                    <p>
+                    It was found that the TCP-based protocols achieved very similar speeds and data efficiency. GridFTP's `UDT' mode is built on UDP, and had a much higher overhead than the TCP protocols. However, it was faster than its default mode for larger file sizes on this network.
+                    </p>
+
+                    <p>
+                    Finally, we found no significant improvements for the newer protocols. SCP and FTP both remained fast and efficient on the connection, where GridFTP and HPN-SCP were either mediocre, or changed with file size.
+                    </p>
+
+                    <div class="align-center">
+                        <h2>Downloads</h2>
+                        <h3>
+                        <a href="downloads/protocols.pdf">Paper</a>
+                        </h3>
+                        <h3>
+                        <a href="jupyter.html">Jupyter notebook</a>
+                        </h3>
+                    </div>
 
 				</div>
 			</section>
