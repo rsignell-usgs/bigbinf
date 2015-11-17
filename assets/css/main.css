@@ -2187,6 +2187,7 @@
 		border: 0;
 		display: inline-block;
 		position: relative;
+		padding: 40px;
 	}
 
 		.image img {
