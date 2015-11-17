@@ -10,7 +10,6 @@ from helpers import get_fnames_by_id, sizeof_fmt,\
                     calc_speed_ratios, TIME_FORMAT,\
                     calc_data_per_filesize
 
-
 PLOT_TIME_FORMAT = "%M:%S"
 MARKERS = ["o", "o", "o", "v", "v"]
 COLORS = ["k", "m", "r", "m", "k"]
