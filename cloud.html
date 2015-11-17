@@ -11,6 +11,8 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
 		<link rel="stylesheet" href="assets/css/main.css" />
+		<link rel="stylesheet" href="cloud.css" />
+
 		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
 		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
 	</head>
@@ -18,7 +20,7 @@
 
 		<!-- Header -->
 			<header id="header">
-				<h1><a href="index.html">Micro-cloud</a></h1>
+				<h1><a href="index.html">Big data in Bioinformatics</a></h1>
 				<a href="#nav">Menu</a>
 			</header>
 
@@ -36,15 +38,126 @@
 				<div class="container">
 
 					<header class="major special">
-						<h2>Generic</h2>
-						<p>Lorem ipsum dolor sit amet nullam id egestas urna aliquam</p>
+						<h2>Micro Cloud</h2>
+						<p>Allow users to process Big data in a configurable environment. This can be remote, and all processing is done where the data is stored. </p>
 					</header>
+					
+					<div>
+						<p>Cloud infrastructure is the combination of multiple compute
+						and storage resources presented as a single system on
+						the internet. Cloud computing has developed considerably
+						over the last decade. Examples of commercial cloud offerings
+						include Amazon Web Services and Google Compute Engine.
+						 Cloud infrastructure has the potential to simplify
+						the processing of big data sets, as well as collaboration between
+						remote researchers.
+						</p>
+						<p>
+						The traditional approach to creating a cloud platform allows
+						users to run their own instances of operating systems
+						(such as Amazon EC2) via virtualisation technology. This
+						includes both hardware level emulation support and the software
+						needed to manage the virtualisation. These virtualisation
+						schemes use machine level virtualisation. Other
+						commercial cloud platforms exist besides Amazon EC2, including
+						Microsoft Azure, Google Cloud Platform, and Digital
+						Ocean.</p>
+						<p>
+						A new method, known as containerization, provides much
+						of the same functionality, with added benefits of lower resource
+						usage and better performance. Containers are able to
+						run native machine instructions whereas virtualisation emulates
+						every machine instruction. Containers are only
+						useful when complete virtualisation is not needed, but allow
+						for isolated application deployment and portability. The use
+						of containers instead of virtual machines has only recently
+						become popular with the release of Docker. The growth
+						in popularity has resulted in a number of systems being developed
+						including Rancher and Kubernetes.
+						</p>
+						<p>
+						
+						<b>Docker</b> is an implementation of a Linux container management
+						tool. Docker functions similarly to virtualisation.
+						It uses an image to quickly launch a pre-configured isolated
+						environment. The key difference is that containers directly
+						use the Linux kernel on the host machine to run native instructions,
+						whereas virtual machines emulate the entire operating
+						system, including the kernel. Every virtual machine
+						launches its own kernel and is not aware of the host kernel.
+						This key difference make containers lightweight, allowing
+						them to be launched in a fraction of time compared to
+						launching a virtual machine.
+						</p>
+						<p>
+						<b>Kubernetes</b> is a pure container manager specifically designed
+						to orchestrate Docker containers. Kubernetes version
+						1 has recently been released. Kubernetes is easy to use and
+						not cluttered and aims to solve a single problem of being a
+						container manager.
+						</p>
+						<p>
+						<b>Ceph</b> storage is a distributed object storage system. Ceph
+						provides flexibility and implements abstractions to use Ceph
+						objects as block storage or as a network file system, in addi-tion to using plain Ceph objects. Ceph objects are based
+						on RADOS (Reliable Autonomic Distributed Object Store).
+						Ceph provides scalability and reliability through automatic
+						distribution and replication of objects.
+						</p>
 
-					<a href="#" class="image fit"><img src="images/pic11.jpg" alt="" /></a>
-					<p>Vis accumsan feugiat adipiscing nisl amet adipiscing accumsan blandit accumsan sapien blandit ac amet faucibus aliquet placerat commodo. Interdum ante aliquet commodo accumsan vis phasellus adipiscing. Ornare a in lacinia. Vestibulum accumsan ac metus massa tempor. Accumsan in lacinia ornare massa amet. Ac interdum ac non praesent. Cubilia lacinia interdum massa faucibus blandit nullam. Accumsan phasellus nunc integer. Accumsan euismod nunc adipiscing lacinia erat ut sit. Arcu amet. Id massa aliquet arcu accumsan lorem amet accumsan.</p>
-					<p>Amet nibh adipiscing adipiscing. Commodo ante vis placerat interdum massa massa primis. Tempus condimentum tempus non ac varius cubilia adipiscing placerat lorem turpis at. Aliquet lorem porttitor interdum. Amet lacus. Aliquam lobortis faucibus blandit ac phasellus. In amet magna non interdum volutpat porttitor metus a ante ac neque. Nisi turpis. Commodo col. Interdum adipiscing mollis ut aliquam id ante adipiscing commodo integer arcu amet Ac interdum ac non praesent. Cubilia lacinia interdum massa faucibus blandit nullam. Accumsan phasellus nunc integer. Accumsan euismod nunc adipiscing lacinia erat ut sit. Arcu amet. Id massa aliquet arcu accumsan lorem amet accumsan commodo odio cubilia ac eu interdum placerat placerat arcu commodo lobortis adipiscing semper ornare pellentesque.</p>
-					<p>Amet nibh adipiscing adipiscing. Commodo ante vis placerat interdum massa massa primis. Tempus condimentum tempus non ac varius cubilia adipiscing placerat lorem turpis at. Aliquet lorem porttitor interdum. Amet lacus. Aliquam lobortis faucibus blandit ac phasellus. In amet magna non interdum volutpat porttitor metus a ante ac neque. Nisi turpis. Commodo col. Interdum adipiscing mollis ut aliquam id ante adipiscing commodo integer arcu amet blandit adipiscing arcu ante.</p>
+						<p>
+						We aim to demonstrate a proof-of-concept micro cloud platform
+						that provides users with a configurable environment,
+						taking advantage of open source cloud software and Docker
+						containers to enable efficient processing of Big Data. The
+						aim is to build a micro cloud platform, using Docker as the
+						main technology, and form a community cloud which allows
+						sharing of data and collaboration of users between multiple
+						micro clouds. Users can access data and submit jobs to the
+						micro cloud by interacting with a front end web interface.
+						</p>
+					</div>
+					<div class="results">
+						<h2>Micro Cloud Architecture</h2>
+						<img src="images/microcloud_architecture.png" width="350px"/>
+						
+					</div>
+					
+					<div class="results">
+						<h2>Results</h2>
+						<p>
+						The implemented micro cloud platform enables a user to
+						submit a job, which it then automatically builds and schedules
+						onto a worker node. Once the job is complete it allows
+						the user to download the results. The user is able to view
+						the job queue and the status of each job.
+						</p>
+						<img src="images/screenshot2.png" width="700px"/>
+						<img src="images/screenshotRegions.png" width="400px"/>
+					</div>
+					<div class="downloads">
+						<h2>Downloads</h2>
 
+						<h3>
+							<a href="downloads/microcloud.pdf" target="_blank">Micro Cloud Paper</a>
+						</h3>
+					</div>
+					<div class="cloud-external-links">
+						<h2>Additional Resources</h2>
+
+						<a href="https://www.docker.com/" target="_blank">
+							<img src="images/docker_logo1.png" width="200px"/>
+						</a>
+						<a href="http://ceph.com/ceph-storage/" target="_blank">
+							<img src="images/ceph_logo.png" width="100px"/>
+						</a>
+						<a href="http://kubernetes.io" target="_blank" >
+							<span >
+								<img class="kubernetes-background" src="images/kubernetes_logo.svg" width="400px"/>
+							</span>
+						</a>
+					</div>
+				
 				</div>
 			</section>
 

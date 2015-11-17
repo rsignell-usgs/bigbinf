@@ -1,0 +1,10 @@
+.kubernetes-background {
+	background-color: rgb(50, 109, 230);
+	padding: 1em;
+
+}
+
+.cloud-external-links a{
+	margin: 2em 2em 2em 2em;
+	color: #fff;
+}
