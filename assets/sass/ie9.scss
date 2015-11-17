@@ -4,17 +4,27 @@
 @import 'libs/skel';
 
 /*
-	Prologue by HTML5 UP
-	html5up.net | @n33co
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+	Retrospect by TEMPLATED
+	templated.co @templatedco
+	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
 */
 
-/* Button */
+/* Feature */
 
-	input[type="button"],
-	input[type="submit"],
-	input[type="reset"],
-	button,
-	.button {
-		background-image: url('images/ie/grad0-15.svg');
+	.feature {
+		.image {
+			width: 48%;
+			float: left;
+		}
+
+		.content {
+			width: 52%;
+			float: left;
+		}
+
+		&:after {
+			content: '';
+			display: block;
+			clear: both;
+		}
 	}
