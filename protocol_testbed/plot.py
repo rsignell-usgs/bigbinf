@@ -6,6 +6,7 @@ import json
 import numpy as np
 from matplotlib import pyplot as plt, dates
 
+from protocols import PROC_ARGS
 from helpers import get_fnames_by_id, sizeof_fmt,\
                     calc_speed_ratios, TIME_FORMAT,\
                     calc_data_per_filesize
@@ -20,7 +21,7 @@ def plot_packets(batch_id):
     """
     dump_batch_names = get_fnames_by_id(batch_id)
 
-    if len(dump_batch_names) < 5:
+    if len(dump_batch_names) < len(PROC_ARGS):
         print "At least one protocol was missing from batch %s" % batch_id
         return
 
@@ -48,10 +49,10 @@ def plot_packets(batch_id):
         y = [l["length"] for l in dump["packets"]]
         xy.append((x, y))
 
-    fig, axes = plt.subplots(5, sharex="col")
+    fig, axes = plt.subplots(len(PROC_ARGS), sharex="col")
     max_yticks = 4
 
-    for i in range(5):
+    for i in range(len(PROC_ARGS)):
         axes[i].plot(xy[i][0], xy[i][1], ".")
         axes[i].xaxis.set_major_formatter(dates.DateFormatter(PLOT_TIME_FORMAT))
         axes[i].set_title(dump_protocols[i], size=16)
@@ -66,7 +67,7 @@ def plot_packets(batch_id):
     fig.text(0.04, 0.5, "Length of payload (bytes)", ha='center', va='center',
              rotation='vertical', size=16)
     fig.suptitle("Individual Packets for %s Transfer" % filesize, size=18)
-    axes[4].legend(bbox_to_anchor=(1, -0.1))
+    axes[len(PROC_ARGS)-1].legend(bbox_to_anchor=(1, -0.1))
     fig.show()
 
 def plot_speed_efficiency(df, filesize, title=True, legend=True, yaxis=True, xaxis=True):
